@@ -1,2 +1,6 @@
-# MS-3.7
-libraries, notebooks and all the things to MS 3.7
+# LISSA - Library Intended for Solving Special Assignments
+
+This library is intended to solve all EPIC ESP data processing, cleaning, and filtering. 
+
+In construction.
+

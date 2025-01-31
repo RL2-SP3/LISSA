@@ -1,0 +1,17 @@
+[project]
+name = "Library Intended for Solving Special Assignments"
+version = "2025.01.31"
+
+dynamic = ["version"]
+
+
+requires-python = ">= 3.8"
+
+authors = [
+  {name = "Paulo Kuga", email = "p204451@dac.unicamp.br"},
+]
+maintainers = [
+  {name = "Paulo Kuga", email = "p204451@dac.unicamp.br"},
+]
+
+readme = "README.md"

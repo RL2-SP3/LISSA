@@ -1,5 +1,5 @@
 data/
 *.png
 __pycache__
-
 .venv/
+*.sh

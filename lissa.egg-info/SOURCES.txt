@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+setup.py
+lissa.egg-info/PKG-INFO
+lissa.egg-info/SOURCES.txt
+lissa.egg-info/dependency_links.txt
+lissa.egg-info/top_level.txt

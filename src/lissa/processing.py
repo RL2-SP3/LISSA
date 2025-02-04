@@ -3,13 +3,14 @@ import json
 
 from matplotlib import pyplot as plt
 import numpy as np
+from typing import Tuple
 #from scipy import stats
 
 
 
 from scipy import signal as sig
 
-def DataPreparer(dirFile,fileName):
+def DataPreparer(dirFile: str,fileName: str) -> pd.DataFrame:
 
     '''
     The one-hour frequency file is supposed to be loaded into baseData. Then, data has its types infered and time is defined as time. 
@@ -35,7 +36,7 @@ def DataPreparer(dirFile,fileName):
     return baseData
 
 
-def FailureMerge(baseData,dirFile,fileName):
+def FailureMerge(baseData: pd.DataFrame ,dirFile:str ,fileName:str) -> Tuple[pd.DataFrame,list]:
 
     '''
     Then, the file respostas.csv is called. respostas.csv is an PEREGRINO ESP Run Life fail spreadsheet.
@@ -76,7 +77,12 @@ def FailureMerge(baseData,dirFile,fileName):
 
     return entireData, pumpList
 
-def FeatureCreation(entireData):
+def FeatureCreation(entireData:pd.DataFrame)->pd.DataFrame:
+    '''
+    This function is intended to process columns for feature creation. 
+    Currently is only synthetizing current A,B,C in a norm-2 and converting columns written as 1/100 units in fractions.
+    
+    '''
     entireData["Current Mean"] = (
     entireData["ESP motor Current - phase A"].pow(2)+
     entireData["ESP motor Current - phase B"].pow(2)+
@@ -122,6 +128,10 @@ def FeatureCreation(entireData):
 
 
 def SetHeaders():
+    '''
+    This function gives all headers into the original dataset.
+    
+    '''
     Temperature = [
     'ESP discharge temperature sensor',
     'ESP intake temperature',
@@ -157,7 +167,12 @@ def SetHeaders():
     return Temperature, Pressure, Electrical, Vibration, Other
 
 
-def FilterProcedure(entireData, pump, windowSize):
+def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.DataFrame:
+
+    '''
+    For each pump, for selected numerical properties, a low frequency filter is passed, trying to reduce the noise into the data. 
+
+    '''
 
     exportData = (entireData.loc[entireData["Well Run"] == pump].copy()) #copies the original dataset
 
@@ -207,8 +222,12 @@ def FilterProcedure(entireData, pump, windowSize):
     return pd.merge(Filter,exportData[removedHeaders],how="left",on="time")
 
 
-def ProcessData(pumpList,entireData,windowSize=1,totalDataPath="/"):
+def ProcessData(pumpList: list ,entireData: pd.DataFrame ,windowSize=1,totalDataPath="/")->pd.DataFrame:
+    '''
+
+    Apply filter to all pumps and export the resulting dataset.
     
+    '''
     totalData = pd.DataFrame(columns=list(entireData))
 
     for pump in pumpList:

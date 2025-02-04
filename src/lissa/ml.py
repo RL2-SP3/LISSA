@@ -1,12 +1,21 @@
 import numpy as np
 from sklearn.preprocessing import power_transform
+import pandas as pd
+from typing import List, Tuple
 
-
-def EntriesPerPump(data):
+def EntriesPerPump(data: pd.DataFrame) -> np.array:
+    '''
+        Returns the number of records for each pump.
+    '''
     return data["Well Run"].value_counts()[data["Well Run"].unique()].to_numpy()
 
-def Splitter(pumpList,proportion,entireData):
-    pumpsIndex = np.linspace(0,len(pumpList)-1,len(pumpList)) #there are 57 pumps in this dataset.
+
+def Splitter(pumpList: np.array | list, proportion: float , entireData: pd.DataFrame) -> Tuple[pd.DataFrame, np.array,pd.DataFrame, np.array]:
+    '''
+        Splits the dataset considering a fraction of pumps (and not a fraction of data). The pumps are chosen randomly.
+    '''
+
+    pumpsIndex = np.linspace(0,len(pumpList)-1,len(pumpList)) #there are 57 pumps in the original dataset.
 
     #chooses randomly as a combination of pump indexes
     trainIndex = np.random.choice(
@@ -17,7 +26,7 @@ def Splitter(pumpList,proportion,entireData):
 
     testIndex = pumpsIndex[np.isin(pumpsIndex,trainIndex,invert=True)].astype(int) #pumps indexes that are not in trainIndex
 
-    np.array(pumpList)
+    #np.array(pumpList)
 
     entireData.fillna(0,inplace=True)
 
@@ -44,10 +53,10 @@ def Splitter(pumpList,proportion,entireData):
     return X_train, EntriesPerPump(X_train), X_test, EntriesPerPump(X_test)
 
 
-
-#busca um pré-header em uma lista de cabeçalhos 
-#e.g.: vc quer procurar MACD na lista e ele selciona apenas os cabeçalhos que contem MACD)
-def NewHeaderApplier(string,exportData):
+def NewHeaderApplier(string: str, exportData: pd.DataFrame) -> list:
+    '''
+        Search for a fragment of string in columns, and returns the ones containing the aforementioned string.
+    '''
     return [
         colName for colName 
         in list(exportData) 
@@ -56,5 +65,10 @@ def NewHeaderApplier(string,exportData):
 
 
 
-def BoxCoxProccess(data,columnName):
+def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.array:
+    '''
+        Returns an array with the yeo-johnson transform of the specified column name. 
+
+        This continuous reshaping is needed due to the power_transform implementation.
+    '''
     return power_transform(data[columnName].to_numpy().reshape(-1,1)).reshape(1,-1)[0]

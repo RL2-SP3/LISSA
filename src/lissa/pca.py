@@ -54,7 +54,7 @@ def ExportPCAData(PCAData,entireData):
     ]
     PCAHeaders = list(PCAData)
     PCAData = pd.concat([PCAData,entireData[notNumericalHeaders+inputHeaders+vibrationHeaders]],axis=1)
-    PCAData["Square"] = PCAData[PCAHeaders].pow(2).sum(axis=1).pow(1/2)
+    PCAData["Radius"] = PCAData[PCAHeaders].pow(2).sum(axis=1).pow(1/2)
     
     #PCAData.to_csv("data/PCA/PCAtotal.csv",index=True)
 

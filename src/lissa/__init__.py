@@ -16,7 +16,7 @@
 # ⠀⠀⠀⠀⠈⠛⢿⣷⣤⣄⣀⣀⣀⣀⣠⣤⣴⡾⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 # ⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠛⠛⠛⠋⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 
-# Library Intended for Solving (Special or Serpa) Assignments (LISSA)
+# Library Intended for Solving Special (Serpa) Assignments (LISSA)
 # 
 # Created for Equinor to ESP data processing (as it came)
 # 

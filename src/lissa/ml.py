@@ -10,7 +10,7 @@ def EntriesPerPump(data: pd.DataFrame) -> np.array:
     return data["Well Run"].value_counts()[data["Well Run"].unique()].to_numpy()
 
 
-def Splitter(pumpList: np.array | list, proportion: float , entireData: pd.DataFrame) -> Tuple[pd.DataFrame, np.array,pd.DataFrame, np.array]:
+def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.DataFrame) -> Tuple[pd.DataFrame, np.ndarray,pd.DataFrame, np.ndarray]:
     '''
         Splits the dataset considering a fraction of pumps (and not a fraction of data). The pumps are chosen randomly.
     '''
@@ -65,7 +65,7 @@ def NewHeaderApplier(string: str, exportData: pd.DataFrame) -> list:
 
 
 
-def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.array:
+def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.ndarray:
     '''
         Returns an array with the yeo-johnson transform of the specified column name. 
 

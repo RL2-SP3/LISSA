@@ -4,6 +4,7 @@ from sklearn.decomposition import PCA
 
 import lissa.processing as pro
 
+import numpy as np
 
 #apenas cabeçalhos operacionais, ou seja, aqueles que vão efetivamente na PCA
 def operationalHeader(exportData):

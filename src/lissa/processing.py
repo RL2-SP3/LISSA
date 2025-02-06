@@ -114,13 +114,13 @@ def FeatureCreation(entireData:pd.DataFrame)->pd.DataFrame:
         # "ESP Vibration X",
         # "ESP Vibration Y",
         # "ESP Motor Voltage",
-        #'ESP differential pressure',
+        'ESP differential pressure', #we are going to try to find this in PCA
         # "Well head pressure",
         # "ESP intake Pressure",
         # "ESP discharge pressure",
         # "Well head Temperature",
         # "ESP intake temperature",
-        # "ESP discharge temperature sensor"
+        "ESP discharge temperature sensor" #there's too many few entries to be considered.
 
     ],inplace=True)
 
@@ -177,13 +177,13 @@ def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.Da
     exportData = (entireData.loc[entireData["Well Run"] == pump].copy()) #copies the original dataset
 
     Headers = [
-    'ESP discharge temperature sensor',
+    #'ESP discharge temperature sensor',
     'ESP intake temperature',
     'ESP motor temperature',
     'Well head Temperature',
     'ESP intake Pressure',
     'ESP discharge pressure',
-    'ESP differential pressure',
+    #'ESP differential pressure',
     'Well head pressure',
     'VSD power frequency',
     'ESP Motor Voltage',

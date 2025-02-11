@@ -51,16 +51,19 @@ def QQPlots(data,relevantHeaders):
 
     n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
     fig, axs = plt.subplots(n,n,figsize=(20,20))
-    axs = axs.ravel()
+    
+    if n > 1:   
+        axs = axs.ravel()
+        i = 0
+        for prop in relevantHeaders:
+            sm.qqplot(data[prop], line='s',ax=axs[i])
+            axs[i].title.set_text(prop)
+            i +=1
 
-    i = 0
-    for prop in relevantHeaders:
-        sm.qqplot(data[prop], line='s',ax=axs[i])
-        axs[i].title.set_text(prop)
-        i +=1
-
-    for j in range(i,n*n):
-        axs[j].remove()
+        for j in range(i,n*n):
+            axs[j].remove()
+    else:
+         sm.qqplot(data, line='s',ax=axs)
 
     return fig,axs
 
@@ -106,7 +109,7 @@ def HMMPicture(pumpData,pump,PCAHeaders,cmap,n):
     pumpData["Shutdown"] = pumpData["Well_down"] != pumpData["Well_down"].shift(-1).fillna(pumpData["Well_down"].iloc[-1])
 
 
-    fig, axs = plt.subplots(2,1, figsize=(60,20))
+    fig, axs = plt.subplots(3,1, figsize=(60,30))
 
     pumpData[PCAHeaders].plot(ax=axs[0])
     for state in range(0,n+1):
@@ -118,6 +121,8 @@ def HMMPicture(pumpData,pump,PCAHeaders,cmap,n):
 
     pumpData[['Water Cut @ 20degC - 1 atm', 'Choke Opening']].plot(ax=axs[1])
     axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+
+    pumpData["State Gaussian"].plot(ax=axs[2])
 
     if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
             #failureX = pumpData.index.get_loc(pumpData.loc[pumpData["Failure"]==True].index[0])

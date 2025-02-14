@@ -3,6 +3,8 @@ from sklearn.preprocessing import power_transform
 import pandas as pd
 from typing import List, Tuple
 
+from hmmlearn import hmm
+
 def EntriesPerPump(data: pd.DataFrame) -> np.array:
     '''
         Returns the number of records for each pump.
@@ -52,6 +54,8 @@ def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.Dat
 
     return X_train, EntriesPerPump(X_train), X_test, EntriesPerPump(X_test)
 
+    #pumpData["Shutdown"] = pumpData["Well_down"] != pumpData["Well_down"].shift(-1).fillna(pumpData["Well_down"].iloc[-1])
+
 
 def NewHeaderApplier(string: str, exportData: pd.DataFrame) -> list:
     '''
@@ -72,3 +76,25 @@ def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.ndarray:
         This continuous reshaping is needed due to the power_transform implementation.
     '''
     return power_transform(data[columnName].to_numpy().reshape(-1,1)).reshape(1,-1)[0]
+
+
+def HiddenMarkovModel(modelData,PCAData,n,seed,X_train,trainLength,totalLength,Headers,outputHeaders):
+    modelSq = hmm.GaussianHMM(n_components=n,random_state=seed)
+
+    reshapedData = X_train[Headers].to_numpy().reshape(-1,1)
+
+    modelSq.fit(reshapedData,trainLength)
+    modelData[outputHeaders] = modelSq.predict(modelData[Headers].to_numpy().reshape(-1,1),totalLength)+1;
+
+    print(np.log(modelSq.aic(reshapedData)))
+
+
+    PCAData[outputHeaders] = 0
+    PCAData.loc[modelData[outputHeaders].index,outputHeaders] = modelData[outputHeaders]
+    return modelSq
+
+
+def StateConversion(distribution,n):
+    stateOrder = np.argsort(distribution)+1
+    stateOrder = np.insert(np.flip(stateOrder),0,0)
+    return dict(zip(stateOrder,range(0,n+1)))

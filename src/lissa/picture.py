@@ -99,40 +99,44 @@ def PCAComponentsPlot(pumpData,pump,PCAHeaders):
     return fig,axs
 
 
-def HMMPicture(pumpData,pump,PCAHeaders,cmap,n):
+def OverFill(pumpData,Headers,State,n,ax):
+    cmap = plt.get_cmap('YlOrBr', n+1)
+    for state in range(0,n+1):
+            color = cmap(state)  # Pega uma cor automática para cada estado
+            ax.fill_between(pumpData.index,np.min(pumpData[Headers]), np.max(pumpData[Headers]), where=(pumpData[State] == state), 
+                            color=color, alpha=0.3, label=f"State {state}")
+            ax.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+
+
+def HMMPicture(pumpData,pump,PCAHeaders,n1,n2):
 
     pumpData["time"] = pd.to_datetime(pumpData["time"])
     pumpData.set_index("time",inplace=True)
 
     pumpData = pumpData.asfreq('h',fill_value=0)
 
-    pumpData["Shutdown"] = pumpData["Well_down"] != pumpData["Well_down"].shift(-1).fillna(pumpData["Well_down"].iloc[-1])
-
-
-    fig, axs = plt.subplots(3,1, figsize=(60,30))
+    n_g = 3
+    fig, axs = plt.subplots(n_g,1, figsize=(60,30))
 
     pumpData[PCAHeaders].plot(ax=axs[0])
-    for state in range(0,n+1):
-            color = cmap(state)  # Pega uma cor automática para cada estado
-            axs[0].fill_between(pumpData.index,np.min(pumpData[PCAHeaders]), np.max(pumpData[PCAHeaders]), where=(pumpData["State Gaussian"] == state), 
-                            color=color, alpha=0.3, label=f"State {state}")
+    OverFill(pumpData,PCAHeaders,"State Gaussian",n1,axs[0])
 
-            axs[0].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+    vibeHeader = ["ESP Vibration X","ESP Vibration Y"]
 
-    pumpData[['Water Cut @ 20degC - 1 atm', 'Choke Opening']].plot(ax=axs[1])
-    axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+    pumpData[vibeHeader].plot(ax=axs[1])
+    OverFill(pumpData,vibeHeader,"State Vib",n2,axs[1])
+    
+    pumpData[['Water Cut @ 20degC - 1 atm', 'Choke Opening']].plot(ax=axs[2])
+    axs[2].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
 
-    pumpData["State Gaussian"].plot(ax=axs[2])
-
-    if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
-            #failureX = pumpData.index.get_loc(pumpData.loc[pumpData["Failure"]==True].index[0])
-            axs[0].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
-            axs[1].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
+    for i in range(0,n_g):
+        if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
+            axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
 
 
     fig.suptitle("HMM: " + pump,fontsize=20);
-    plt.figtext(0.5, 0.47, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
-    plt.figtext(0.5, 0.45, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
+    plt.figtext(0.3, 0.47, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
+    plt.figtext(0.3, 0.45, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
 
 
     plt.tight_layout()

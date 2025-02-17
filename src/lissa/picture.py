@@ -135,8 +135,8 @@ def HMMPicture(pumpData,pump,PCAHeaders,n1,n2):
 
 
     fig.suptitle("HMM: " + pump,fontsize=20);
-    plt.figtext(0.3, 0.47, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
-    plt.figtext(0.3, 0.45, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
+    plt.figtext(0.5, 0.3, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
+    plt.figtext(0.5, 0.3, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
 
 
     plt.tight_layout()

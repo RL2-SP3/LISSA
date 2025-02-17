@@ -79,19 +79,22 @@ def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.ndarray:
 
 
 def HiddenMarkovModel(modelData,PCAData,n,seed,X_train,trainLength,totalLength,Headers,outputHeaders):
-    modelSq = hmm.GaussianHMM(n_components=n,random_state=seed)
+    model = hmm.GaussianHMM(n_components=n,random_state=seed)
 
-    reshapedData = X_train[Headers].to_numpy().reshape(-1,1)
-
-    modelSq.fit(reshapedData,trainLength)
-    modelData[outputHeaders] = modelSq.predict(modelData[Headers].to_numpy().reshape(-1,1),totalLength)+1;
-
-    print(np.log(modelSq.aic(reshapedData)))
-
+    if type(X_train[Headers]) == pd.Series:
+        reshapedData = X_train[Headers].to_numpy().reshape(-1,1)
+        model.fit(reshapedData,trainLength)
+        modelData[outputHeaders] = model.predict(modelData[Headers].to_numpy().reshape(-1,1),totalLength)+1;
+    else:
+        reshapedData = X_train[Headers].to_numpy()
+        model.fit(reshapedData,trainLength)
+        modelData[outputHeaders] = model.predict(modelData[Headers].to_numpy(),totalLength)+1;
+    
+    print(np.log(model.aic(reshapedData)))
 
     PCAData[outputHeaders] = 0
     PCAData.loc[modelData[outputHeaders].index,outputHeaders] = modelData[outputHeaders]
-    return modelSq
+    return model
 
 
 def StateConversion(distribution,n):

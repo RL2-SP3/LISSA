@@ -5,11 +5,36 @@ from typing import List, Tuple
 
 from hmmlearn import hmm
 
-def EntriesPerPump(data: pd.DataFrame) -> np.array:
+from matplotlib import pyplot as plt
+
+def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarray) -> np.array:
     '''
         Returns the number of records for each pump.
     '''
-    return data["Well Run"].value_counts()[data["Well Run"].unique()].to_numpy()
+    #return data["Well Run"].value_counts()[data["Well Run"].unique()].to_numpy()
+
+    exportData = pd.DataFrame(columns=list(entireData))
+
+    modelPlay = np.array([])
+    for pump in pumpList[defIndex]:
+        pumpData = entireData.loc[entireData["Well Run"]==pump].copy()
+
+        pumpData["Shutdown"] = (pumpData["Well_down"] != pumpData["Well_down"].shift(1).fillna(pumpData["Well_down"].iloc[-1])) #differentiates well down blocks
+
+        pumpData["CumShut"] = pumpData["Shutdown"].cumsum() #group names them
+
+        testSize =pumpData.groupby("CumShut") #groupby execution
+
+        blockSize = testSize.size() #gets size of each group
+        real = blockSize[testSize["Well_down"].last()==0] #selects only online runs
+
+        modelData = pumpData.loc[pumpData["Well_down"]==0].copy()
+   
+    
+        modelPlay = np.concat([modelPlay,real.to_numpy()])
+        exportData = pd.concat([exportData,modelData],axis=0)
+
+    return exportData, modelPlay.astype(int)
 
 
 def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.DataFrame) -> Tuple[pd.DataFrame, np.ndarray,pd.DataFrame, np.ndarray]:
@@ -27,34 +52,10 @@ def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.Dat
         ).astype(int)
 
     testIndex = pumpsIndex[np.isin(pumpsIndex,trainIndex,invert=True)].astype(int) #pumps indexes that are not in trainIndex
-
-    #np.array(pumpList)
-
-    entireData.fillna(0,inplace=True)
-
-    #define training data
-    trainPumpData = entireData.loc[
-        entireData["Well Run"].isin(pumpList[trainIndex])
-    ] 
-
-
-    testPumpData = entireData.loc[
-        entireData["Well Run"].isin(pumpList[testIndex])
-    ]
-
-    X_train = trainPumpData#.drop(columns=["Failure","Well Run","Well_down"])
-    #y_train = trainPumpData["Failure"]
-    X_train = X_train.sort_values(["Well Run","time"])
-
-    
-
-    X_test = testPumpData#.drop(columns=["time", "Failure","Well_down"])
-    #y_test = testPumpData["Failure"]
-    X_test = X_test.sort_values(["Well Run","time"])
-
-    return X_train, EntriesPerPump(X_train), X_test, EntriesPerPump(X_test)
-
-    #pumpData["Shutdown"] = pumpData["Well_down"] != pumpData["Well_down"].shift(-1).fillna(pumpData["Well_down"].iloc[-1])
+  
+    X_train, trainLength = EntriesPerPump(entireData, pumpList, trainIndex)
+    X_test, testLength = EntriesPerPump(entireData, pumpList, testIndex)
+    return X_train, trainLength, X_test, testLength
 
 
 def NewHeaderApplier(string: str, exportData: pd.DataFrame) -> list:
@@ -78,26 +79,57 @@ def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.ndarray:
     return power_transform(data[columnName].to_numpy().reshape(-1,1)).reshape(1,-1)[0]
 
 
-def HiddenMarkovModel(modelData,PCAData,n,seed,X_train,trainLength,totalLength,Headers,outputHeaders):
-    model = hmm.GaussianHMM(n_components=n,random_state=seed)
+# def HiddenMarkovModel(modelData,PCAData,n,seed,X_train,trainLength,totalLength,Headers,outputHeaders):
+#     model = hmm.GaussianHMM(n_components=n,random_state=seed)
 
-    if type(X_train[Headers]) == pd.Series:
-        reshapedData = X_train[Headers].to_numpy().reshape(-1,1)
-        model.fit(reshapedData,trainLength)
-        modelData[outputHeaders] = model.predict(modelData[Headers].to_numpy().reshape(-1,1),totalLength)+1;
-    else:
-        reshapedData = X_train[Headers].to_numpy()
-        model.fit(reshapedData,trainLength)
-        modelData[outputHeaders] = model.predict(modelData[Headers].to_numpy(),totalLength)+1;
+#     if type(X_train[Headers]) == pd.Series:
+#         reshapedData = X_train[Headers].to_numpy().reshape(-1,1)
+#         model.fit(reshapedData,trainLength)
+#         modelData[outputHeaders] = model.predict(modelData[Headers].to_numpy().reshape(-1,1),totalLength)+1;
+#     else:
+#         reshapedData = X_train[Headers].to_numpy()
+#         model.fit(reshapedData,trainLength)
+#         modelData[outputHeaders] = model.predict(modelData[Headers].to_numpy(),totalLength)+1;
     
-    print(np.log(model.aic(reshapedData)))
+#     print(np.log(model.aic(reshapedData)))
 
-    PCAData[outputHeaders] = 0
-    PCAData.loc[modelData[outputHeaders].index,outputHeaders] = modelData[outputHeaders]
-    return model
+#     PCAData[outputHeaders] = 0
+#     PCAData.loc[modelData[outputHeaders].index,outputHeaders] = modelData[outputHeaders]
+#     return model
 
 
 def StateConversion(distribution,n):
     stateOrder = np.argsort(distribution)+1
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
+
+def HiddenMarkovModel(X_train, trainLength, mainSeed, n):
+    # Gerando cores automáticas com base no número de estados
+    cmap = plt.get_cmap('YlOrBr', n+1)  # Escolhe um colormap com num_states cores
+
+    model = hmm.GaussianHMM(n_components=n,random_state=mainSeed)
+
+    if type(X_train) == pd.Series:
+        reshapedData = X_train.to_numpy().reshape(-1,1)
+        model.fit(reshapedData,trainLength)
+    else:
+        reshapedData = X_train.to_numpy()
+        model.fit(reshapedData,trainLength)
+
+
+    return model, cmap
+
+
+def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLength):
+    
+    if type(modelData[inputHeader])==pd.Series:
+        totalReshaped = modelData[inputHeader].to_numpy().reshape(-1,1)
+        modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
+    else:
+        totalReshaped = modelData[inputHeader].to_numpy()
+        modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
+
+
+    print(np.log(model.aic(totalReshaped)))
+    PCAData[outputHeader] = 0
+    PCAData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]

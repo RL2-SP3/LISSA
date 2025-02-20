@@ -100,7 +100,7 @@ def PCAComponentsPlot(pumpData,pump,PCAHeaders):
 
 
 def OverFill(pumpData,Headers,State,n,ax):
-    cmap = plt.get_cmap('YlOrBr', n+1)
+    cmap = plt.get_cmap('Oranges', n+1)
     for state in range(0,n+1):
             color = cmap(state)  # Pega uma cor automática para cada estado
             ax.fill_between(pumpData.index,np.min(pumpData[Headers]), np.max(pumpData[Headers]), where=(pumpData[State] == state), 

@@ -103,11 +103,8 @@ def StateConversion(distribution,n):
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
 
-def HiddenMarkovModel(X_train, trainLength, mainSeed, n):
-    # Gerando cores automáticas com base no número de estados
-    cmap = plt.get_cmap('YlOrBr', n+1)  # Escolhe um colormap com num_states cores
-
-    model = hmm.GaussianHMM(n_components=n,random_state=mainSeed)
+def HiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full"):
+    model = hmm.GaussianHMM(n_components=n,covariance_type=covar_type,random_state=mainSeed)
 
     if type(X_train) == pd.Series:
         reshapedData = X_train.to_numpy().reshape(-1,1)
@@ -117,7 +114,7 @@ def HiddenMarkovModel(X_train, trainLength, mainSeed, n):
         model.fit(reshapedData,trainLength)
 
 
-    return model, cmap
+    return model
 
 
 def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLength):

@@ -103,8 +103,14 @@ def StateConversion(distribution,n):
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
 
-def HiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full"):
-    model = hmm.GaussianHMM(n_components=n,covariance_type=covar_type,random_state=mainSeed)
+def HiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full",algorithm="viterbi"):
+    model = hmm.GaussianHMM(
+        n_components=n,
+        covariance_type=covar_type,
+        random_state=mainSeed,
+        algorithm=algorithm,
+        n_iter = 20,
+        tol=0.005)
 
     if type(X_train) == pd.Series:
         reshapedData = X_train.to_numpy().reshape(-1,1)

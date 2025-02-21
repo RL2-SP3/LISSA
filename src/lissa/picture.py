@@ -136,11 +136,11 @@ def HMMPicture(pumpData,pump,PCAHeaders,n):
 
     for i in range(0,n_g):
         if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
-            axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
+            axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
 
 
     fig.suptitle("HMM: " + pump,fontsize=20);
-    plt.figtext(0.5, 0.37, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
+    plt.figtext(0.5, 0.32, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
     plt.figtext(0.5, 0.3, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
 
 

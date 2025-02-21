@@ -5,3 +5,4 @@ __pycache__
 *.sh
 src/lissa/__pycache__
 imagensHMM/
+imagensHMM_map/

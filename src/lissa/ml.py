@@ -133,6 +133,6 @@ def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLen
         modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
 
 
-    print(np.log(model.aic(totalReshaped)))
+    print("AIC: " + str(np.log(model.aic(totalReshaped)))+ " BIC: " + str(np.log(model.bic(totalReshaped))))
     PCAData[outputHeader] = 0
     PCAData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]

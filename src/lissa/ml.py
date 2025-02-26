@@ -109,8 +109,8 @@ def HiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full",algori
         covariance_type=covar_type,
         random_state=mainSeed,
         algorithm=algorithm,
-        n_iter = 20,
-        tol=0.005)
+        n_iter = 100,
+        tol=0.01)
 
     if type(X_train) == pd.Series:
         reshapedData = X_train.to_numpy().reshape(-1,1)

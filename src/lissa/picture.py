@@ -146,3 +146,36 @@ def HMMPicture(pumpData,pump,PCAHeaders,n):
 
     plt.tight_layout()
     return fig,axs
+
+
+def HMMPicture(pumpData,pump,PCAHeaders, props,states, numberOfStates):
+
+    pumpData["time"] = pd.to_datetime(pumpData["time"])
+    pumpData.set_index("time",inplace=True)
+    pumpData = pumpData.asfreq('h',fill_value=0)
+
+
+    n_g = len(props)    
+    fig, axs = plt.subplots(n_g,1, figsize=(60,30))
+
+    if n_g == 1:
+        pumpData[props[0]].plot(ax=axs)
+        OverFill(pumpData,props[0],states[0],numberOfStates[0],axs)
+        axs.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+        if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
+            axs.axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+    else:
+        for i in range(0,n_g):
+            pumpData[props[i]].plot(ax=axs[i])
+            OverFill(pumpData,props[i],states[i],numberOfStates[i],axs[i])
+            axs[i].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+            if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
+                axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+        
+    fig.suptitle("HMM: " + pump,fontsize=20);
+    plt.figtext(0.5, 0.32, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
+    plt.figtext(0.5, 0.3, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
+
+
+    plt.tight_layout()
+    return fig,axs

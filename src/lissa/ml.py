@@ -34,7 +34,7 @@ def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarra
         modelPlay = np.concat([modelPlay,real.to_numpy()])
         exportData = pd.concat([exportData,modelData],axis=0)
 
-    return exportData, modelPlay.astype(int)
+    return exportData.infer_objects(), modelPlay.astype(int)
 
 
 def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.DataFrame) -> Tuple[pd.DataFrame, np.ndarray,pd.DataFrame, np.ndarray]:
@@ -103,7 +103,7 @@ def StateConversion(distribution,n):
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
 
-def HiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full",algorithm="viterbi"):
+def GaussianHiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full",algorithm="viterbi"):
     model = hmm.GaussianHMM(
         n_components=n,
         covariance_type=covar_type,
@@ -119,6 +119,15 @@ def HiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full",algori
         reshapedData = X_train.to_numpy()
         model.fit(reshapedData,trainLength)
 
+    return model
+
+def HMMTrainer(X_train, trainLength, model):
+    if type(X_train) == pd.Series:
+        reshapedData = X_train.to_numpy().reshape(-1,1)
+    else:
+        reshapedData = X_train.to_numpy()
+
+    model.fit(reshapedData,trainLength)
 
     return model
 

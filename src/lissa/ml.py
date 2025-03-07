@@ -7,6 +7,9 @@ from hmmlearn import hmm
 
 from matplotlib import pyplot as plt
 
+from scipy.stats import norm
+from sklearn.mixture import GaussianMixture
+
 def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarray) -> np.array:
     '''
         Returns the number of records for each pump.
@@ -142,6 +145,41 @@ def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLen
         modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
 
 
-    print("AIC: " + str(np.log(model.aic(totalReshaped)))+ " BIC: " + str(np.log(model.bic(totalReshaped))))
+    print("AIC: " + str(model.aic(totalReshaped))+ " BIC: " + str(model.bic(totalReshaped)))
     PCAData[outputHeader] = 0
     PCAData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
+
+
+
+def GMMFit(data,n_components,seed=19971215):
+    
+    if type(data) == pd.Series:
+        reshapedData = data.to_numpy().reshape(-1,1)
+    else:
+        reshapedData = data.to_numpy()
+    gmm = GaussianMixture(n_components=n_components, random_state=seed)
+    gmm.fit(reshapedData)
+    return gmm
+
+
+def GaussianMixturePlot(model,data):
+    means = model.means_.flatten()
+    stds = np.sqrt(model.covariances_).flatten()
+    weights = model.weights_
+
+    # Criando um range de valores para plotar as distribuições
+    x = np.linspace(0, np.max(data), 1000)
+
+    # Plotando histograma dos dados originais
+    plt.hist(data, bins=100, density=True, alpha=0.5, label="Dados Originais")
+
+    # Plotando cada gaussiana individualmente
+    for i in range(model.means_.shape[0]):
+        plt.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]), label=f"Gaussiana {i+1}")
+
+    # Plotando a soma das gaussianas
+    #pdf = np.exp(gmm.score_samples(x.reshape(-1, 1)))
+    #plt.plot(x, pdf, label="Soma das Gaussianas", color="red", linestyle="dashed")
+
+    plt.legend()
+    plt.show()

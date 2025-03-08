@@ -157,7 +157,7 @@ def GMMFit(data,n_components,seed=19971215):
         reshapedData = data.to_numpy().reshape(-1,1)
     else:
         reshapedData = data.to_numpy()
-    gmm = GaussianMixture(n_components=n_components, random_state=seed)
+    gmm = GaussianMixture(n_components=n_components, random_state=seed,covariance_type="full")
     gmm.fit(reshapedData)
     return gmm
 

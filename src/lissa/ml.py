@@ -40,7 +40,7 @@ def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarra
     return exportData.infer_objects(), modelPlay.astype(int)
 
 
-def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.DataFrame) -> Tuple[pd.DataFrame, np.ndarray,pd.DataFrame, np.ndarray]:
+def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.DataFrame) -> Tuple[pd.DataFrame, np.ndarray,pd.DataFrame, np.ndarray, pd.DataFrame, np.ndarray]:
     '''
         Splits the dataset considering a fraction of pumps (and not a fraction of data). The pumps are chosen randomly.
     '''
@@ -58,7 +58,13 @@ def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.Dat
   
     X_train, trainLength = EntriesPerPump(entireData, pumpList, trainIndex)
     X_test, testLength = EntriesPerPump(entireData, pumpList, testIndex)
-    return X_train, trainLength, X_test, testLength
+
+    totalLength = np.concatenate([trainLength,testLength])
+
+    modelData = pd.concat([X_train,X_test])
+
+
+    return X_train, trainLength, X_test, testLength, modelData, totalLength
 
 
 def NewHeaderApplier(string: str, exportData: pd.DataFrame) -> list:
@@ -151,7 +157,7 @@ def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLen
 
 
 
-def GMMFit(data,n_components,seed=19971215):
+def GaussianMixtureExecution(data,n_components,seed=19971215):
     
     if type(data) == pd.Series:
         reshapedData = data.to_numpy().reshape(-1,1)
@@ -159,10 +165,8 @@ def GMMFit(data,n_components,seed=19971215):
         reshapedData = data.to_numpy()
     gmm = GaussianMixture(n_components=n_components, random_state=seed,covariance_type="full")
     gmm.fit(reshapedData)
-    return gmm
 
-
-def GaussianMixturePlot(model,data):
+    model = gmm
     means = model.means_.flatten()
     stds = np.sqrt(model.covariances_).flatten()
     weights = model.weights_
@@ -183,3 +187,5 @@ def GaussianMixturePlot(model,data):
 
     plt.legend()
     plt.show()
+
+    return gmm

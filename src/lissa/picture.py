@@ -148,7 +148,7 @@ def HMMPicture(pumpData,pump,PCAHeaders,n):
     return fig,axs
 
 
-def HMMPicture(pumpData,pump,PCAHeaders, props,states, numberOfStates):
+def HMMPicture(pumpData,pump,PCAHeaders, props,states, numberOfStates,figsize=(60,30)):
 
     pumpData["time"] = pd.to_datetime(pumpData["time"])
     pumpData.set_index("time",inplace=True)
@@ -156,7 +156,7 @@ def HMMPicture(pumpData,pump,PCAHeaders, props,states, numberOfStates):
 
 
     n_g = len(props)    
-    fig, axs = plt.subplots(n_g,1, figsize=(60,30))
+    fig, axs = plt.subplots(n_g,1, figsize=figsize)
 
     if n_g == 1:
         pumpData[props[0]].plot(ax=axs)

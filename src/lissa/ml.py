@@ -156,15 +156,19 @@ def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLen
     PCAData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
 
 
-
-def GaussianMixtureExecution(data,n_components,seed=19971215):
-    
+def GaussianMixtureFit(data,n_components,seed):
     if type(data) == pd.Series:
         reshapedData = data.to_numpy().reshape(-1,1)
     else:
         reshapedData = data.to_numpy()
     gmm = GaussianMixture(n_components=n_components, random_state=seed,covariance_type="full")
     gmm.fit(reshapedData)
+
+    return gmm
+
+def GaussianMixtureExecution(data,n_components,seed=19971215):
+    
+    gmm = GaussianMixtureFit(data,n_components,seed)
 
     model = gmm
     means = model.means_.flatten()
@@ -189,3 +193,18 @@ def GaussianMixtureExecution(data,n_components,seed=19971215):
     plt.show()
 
     return gmm
+
+def StandardMarkovModel(n,seed, gmm):
+    model = hmm.GaussianHMM(
+        n_components=n,
+        random_state=seed,
+        covariance_type="full",
+        init_params="st",
+        #algorithm="map"
+        )
+   
+    model.means_ = gmm.means_
+    model.covars__ = gmm.covariances_
+
+    return model
+

@@ -108,47 +108,7 @@ def OverFill(pumpData,Headers,State,n,ax):
             ax.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
 
 
-def HMMPicture(pumpData,pump,PCAHeaders,n):
-
-    pumpData["time"] = pd.to_datetime(pumpData["time"])
-    pumpData.set_index("time",inplace=True)
-
-    pumpData = pumpData.asfreq('h',fill_value=0)
-
-    n_g = 3
-    fig, axs = plt.subplots(n_g,1, figsize=(60,30))
-
-    pumpData[PCAHeaders].plot(ax=axs[0])
-    OverFill(pumpData,PCAHeaders,"State Gaussian",n[0],axs[0])
-
-    vibeHeader = ["ESP Vibration X","ESP Vibration Y"]
-
-    pumpData[vibeHeader].plot(ax=axs[1])
-    OverFill(pumpData,vibeHeader,"State Vib",n[1],axs[1])
-    
-    esotericHeader = ['Water Cut @ 20degC - 1 atm', 'Choke Opening']
-    pumpData[esotericHeader].plot(ax=axs[2])
-    OverFill(pumpData,esotericHeader,"State Tot",n[2],axs[2])
-
-
-
-    axs[2].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
-
-    for i in range(0,n_g):
-        if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
-            axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
-
-
-    fig.suptitle("HMM: " + pump,fontsize=20);
-    plt.figtext(0.5, 0.32, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
-    plt.figtext(0.5, 0.3, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
-
-
-    plt.tight_layout()
-    return fig,axs
-
-
-def HMMPicture(pumpData,pump,PCAHeaders, props,states, numberOfStates,figsize=(60,30)):
+def HMMPicture(pumpData,pump, props,states, numberOfStates,figsize=(60,30)):
 
     pumpData["time"] = pd.to_datetime(pumpData["time"])
     pumpData.set_index("time",inplace=True)

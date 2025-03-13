@@ -10,13 +10,13 @@ from matplotlib import pyplot as plt
 from scipy.stats import norm
 from sklearn.mixture import GaussianMixture
 
-def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarray) -> np.array:
+def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarray) -> Tuple[pd.DataFrame,np.array]:
     '''
-        Returns the number of records for each pump.
+        Returns the data related of online pumps and it's number of records for each pump.
     '''
     #return data["Well Run"].value_counts()[data["Well Run"].unique()].to_numpy()
 
-    exportData = pd.DataFrame(columns=list(entireData))
+    #exportData = pd.DataFrame(columns=list(entireData))
 
     modelPlay = np.array([])
     for pump in pumpList[defIndex]:
@@ -35,7 +35,10 @@ def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarra
    
     
         modelPlay = np.concat([modelPlay,real.to_numpy()])
-        exportData = pd.concat([exportData,modelData],axis=0)
+        if pump == pumpList[defIndex][0]:
+            exportData = modelData
+        else:
+            exportData = pd.concat([exportData,modelData],axis=0)
 
     return exportData.infer_objects(), modelPlay.astype(int)
 
@@ -141,7 +144,7 @@ def HMMTrainer(X_train, trainLength, model):
     return model
 
 
-def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLength):
+def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLength, verbose=True):
     
     if type(modelData[inputHeader])==pd.Series:
         totalReshaped = modelData[inputHeader].to_numpy().reshape(-1,1)
@@ -150,8 +153,8 @@ def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLen
         totalReshaped = modelData[inputHeader].to_numpy()
         modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
 
-
-    print("AIC: " + str(model.aic(totalReshaped))+ " BIC: " + str(model.bic(totalReshaped)))
+    if verbose:
+        print("AIC: " + str(model.aic(totalReshaped))+ " BIC: " + str(model.bic(totalReshaped)))
     PCAData[outputHeader] = 0
     PCAData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
 

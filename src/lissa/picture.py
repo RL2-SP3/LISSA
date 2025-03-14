@@ -108,7 +108,7 @@ def OverFill(pumpData,Headers,State,n,ax):
             ax.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
 
 
-def HMMPicture(pumpData,pump, props,states, numberOfStates,figsize=(60,30)):
+def HMMPicture(pumpData,pump, props,states, numberOfStates,figsize=(60,30),posLeg = 0.5):
 
     pumpData["time"] = pd.to_datetime(pumpData["time"])
     pumpData.set_index("time",inplace=True)
@@ -133,8 +133,8 @@ def HMMPicture(pumpData,pump, props,states, numberOfStates,figsize=(60,30)):
                 axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
         
     fig.suptitle("HMM: " + pump,fontsize=20);
-    plt.figtext(0.5, 0.32, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
-    plt.figtext(0.5, 0.3, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
+    plt.figtext(0.5, posLeg + 0.02, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
+    plt.figtext(0.5, posLeg, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
 
 
     plt.tight_layout()

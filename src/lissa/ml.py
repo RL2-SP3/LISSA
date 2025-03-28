@@ -7,7 +7,6 @@ from hmmlearn import hmm
 
 from matplotlib import pyplot as plt
 
-from scipy.stats import norm
 from sklearn.mixture import GaussianMixture
 
 def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarray) -> Tuple[pd.DataFrame,np.array]:
@@ -166,34 +165,6 @@ def GaussianMixtureFit(data,n_components,seed):
         reshapedData = data.to_numpy()
     gmm = GaussianMixture(n_components=n_components, random_state=seed,covariance_type="full")
     gmm.fit(reshapedData)
-
-    return gmm
-
-def GaussianMixtureExecution(data,n_components,seed=19971215):
-    
-    gmm = GaussianMixtureFit(data,n_components,seed)
-
-    model = gmm
-    means = model.means_.flatten()
-    stds = np.sqrt(model.covariances_).flatten()
-    weights = model.weights_
-
-    # Criando um range de valores para plotar as distribuições
-    x = np.linspace(0, np.max(data), 1000)
-
-    # Plotando histograma dos dados originais
-    plt.hist(data, bins=100, density=True, alpha=0.5, label="Dados Originais")
-
-    # Plotando cada gaussiana individualmente
-    for i in range(model.means_.shape[0]):
-        plt.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]), label=f"Gaussiana {i+1}")
-
-    # Plotando a soma das gaussianas
-    #pdf = np.exp(gmm.score_samples(x.reshape(-1, 1)))
-    #plt.plot(x, pdf, label="Soma das Gaussianas", color="red", linestyle="dashed")
-
-    plt.legend()
-    plt.show()
 
     return gmm
 

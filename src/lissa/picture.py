@@ -7,6 +7,9 @@ import statsmodels.api as sm
 import seaborn as sns
 import matplotlib.colors as mcolors
 
+
+from scipy.stats import norm
+
 #directed imported from analysis.py
 def CorrGraphGen(corrAnalysis,plotHeaders,pump):
     dataCorrelation = corrAnalysis[plotHeaders].corr(method='pearson')
@@ -30,18 +33,24 @@ def FigureComponents(pca,string,Headers):
     PCAt = pca.components_.T
 
     plt.figure(figsize=(10, 5))
+
     plt.imshow(PCAt, interpolation='nearest',aspect='auto',cmap='bwr')
 
     for i in range(PCAt.shape[0]):
         for j in range(PCAt.shape[1]):
-            plt.text(j, i, f'{PCAt[i, j]:.2f}', ha='center', va='center', color='black')
+            plt.text(j, i, f'{PCAt[i, j]:.2f}', ha='center', va='center', color='black',fontsize=10)
 
 
     plt.yticks(ticks=range(0,len(Headers)),labels=Headers)
-    plt.title(string)
-    plt.colorbar()
+    plt.title(string,fontsize=16)
+    plt.colorbar(label="Correlation")
 
+    plt.xlabel("PCA Components",fontsize=13)
+    plt.ylabel("Original Data Features",fontsize=13)
+    plt.savefig("../imagens_gerais/PCA_matrix")
+    plt.tight_layout()
     plt.show()
+    
     print(pca.explained_variance_ratio_.cumsum())
 
 
@@ -95,7 +104,7 @@ def PCAComponentsPlot(pumpData,pump,PCAHeaders):
     fig.colorbar(its,ax=axs[1],orientation='horizontal',shrink=0.5)
 
     fig.suptitle("PCA Data of " + pump,fontsize=20);
-
+    
     return fig,axs
 
 
@@ -108,7 +117,7 @@ def OverFill(pumpData,Headers,State,n,ax):
             ax.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
 
 
-def HMMPicture(pumpData,pump, props,states, numberOfStates,figsize=(60,30),posLeg = 0.5):
+def HMMPicture(pumpData,pump, props,states, numberOfStates, measures, figsize=(60,30),posLeg = 0.5):
 
     pumpData["time"] = pd.to_datetime(pumpData["time"])
     pumpData.set_index("time",inplace=True)
@@ -116,12 +125,15 @@ def HMMPicture(pumpData,pump, props,states, numberOfStates,figsize=(60,30),posLe
 
 
     n_g = len(props)    
-    fig, axs = plt.subplots(n_g,1, figsize=figsize)
+    fig, axs = plt.subplots(n_g,1, figsize=figsize,sharex=True)
 
     if n_g == 1:
         pumpData[props[0]].plot(ax=axs)
         OverFill(pumpData,props[0],states[0],numberOfStates[0],axs)
         axs.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+        axs.tick_params(axis='both',which="both", labelsize="20")
+        axs.set_xlabel("time",fontsize=20)
+        axs.set_ylabel(measures,fontsize=20)
         if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
             axs.axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
     else:
@@ -129,13 +141,73 @@ def HMMPicture(pumpData,pump, props,states, numberOfStates,figsize=(60,30),posLe
             pumpData[props[i]].plot(ax=axs[i])
             OverFill(pumpData,props[i],states[i],numberOfStates[i],axs[i])
             axs[i].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+            axs[i].tick_params(axis='both',which="both", labelsize="20")
+            axs[i].set_xlabel("time",fontsize=20)
+            axs[i].set_ylabel(measures[i],fontsize=20)
             if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
                 axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
         
     fig.suptitle("HMM: " + pump,fontsize=20);
-    plt.figtext(0.5, posLeg + 0.02, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
-    plt.figtext(0.5, posLeg, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
+    #plt.figtext(0.5, posLeg + 0.02, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
+    #plt.figtext(0.5, posLeg, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
 
 
     plt.tight_layout()
+    return fig,axs
+
+
+def GaussianMixturePlot(data,gmm,strings,seed=19971215):
+    model = gmm
+    means = model.means_.flatten()
+    stds = np.sqrt(model.covariances_).flatten()
+    weights = model.weights_
+
+    # Criando um range de valores para plotar as distribuições
+    x = np.linspace(0, np.max(data), 1000)
+
+
+    plt.figure(figsize=(10,5))
+    # Plotando histograma dos dados originais
+    plt.hist(data, bins=100, density=True, alpha=0.5, label=strings[0])
+
+    # Plotando cada gaussiana individualmente
+    for i in range(model.means_.shape[0]):
+        plt.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]), label=f"{strings[1]} {i+1}")
+
+    # Plotando a soma das gaussianas
+    #pdf = np.exp(gmm.score_samples(x.reshape(-1, 1)))
+    #plt.plot(x, pdf, label="Soma das Gaussianas", color="red", linestyle="dashed")
+
+    plt.legend()
+    plt.title(strings[2])
+    plt.xlabel(strings[3])
+    plt.ylabel(strings[4])
+    path = "../imagens_gerais/gmm_"+data.name
+    plt.savefig(path)
+    plt.show()
+
+
+    return gmm
+
+
+
+def PCAComparisionPlot(pumpData,originalData,pump,PCAHeaders,originalHeaders):
+
+    fig, axs = plt.subplots(2,1, figsize=(20,10),sharex=True)
+
+    pumpData[PCAHeaders].plot(ax=axs[1])
+    originalData[originalHeaders].plot(ax=axs[0])
+    axs[0].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10)
+    axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10)
+
+
+
+    if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:       
+        axs[0].axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+        axs[1].axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+
+
+    fig.suptitle("PCA Data of " + pump,fontsize=15);
+    plt.tight_layout()
+    
     return fig,axs

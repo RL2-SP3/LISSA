@@ -23,7 +23,7 @@ def CorrGraphGen(corrAnalysis,plotHeaders,pump):
    
 
     #plt.savefig("imagens/comFiltro/correlacoes/corr_"+pump+".png")
-    plt.savefig("imagens/PCAcorr/corr_"+pump+".png")
+    plt.savefig("imagens/PCAcorr/corr_"+pump+".jpg")
     plt.close() 
 
 
@@ -47,7 +47,7 @@ def FigureComponents(pca,string,Headers):
 
     plt.xlabel("PCA Components",fontsize=13)
     plt.ylabel("Original Data Features",fontsize=13)
-    plt.savefig("../imagens_gerais/PCA_matrix")
+    plt.savefig("../imagens_gerais/PCA_matrix.jpg", bbox_inches='tight')
     plt.tight_layout()
     plt.show()
     
@@ -147,7 +147,7 @@ def HMMPicture(pumpData,pump, props,states, numberOfStates, measures, figsize=(6
             if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
                 axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
         
-    fig.suptitle("HMM: " + pump,fontsize=20);
+    fig.suptitle("HMM: " + pump,fontsize=25);
     #plt.figtext(0.5, posLeg + 0.02, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
     #plt.figtext(0.5, posLeg, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
 
@@ -156,7 +156,7 @@ def HMMPicture(pumpData,pump, props,states, numberOfStates, measures, figsize=(6
     return fig,axs
 
 
-def GaussianMixturePlot(data,gmm,strings,seed=19971215):
+def GaussianMixturePlot(data,gmm,strings,figsize=(7,5)):
     model = gmm
     means = model.means_.flatten()
     stds = np.sqrt(model.covariances_).flatten()
@@ -166,7 +166,7 @@ def GaussianMixturePlot(data,gmm,strings,seed=19971215):
     x = np.linspace(0, np.max(data), 1000)
 
 
-    plt.figure(figsize=(10,5))
+    plt.figure(figsize=figsize)
     # Plotando histograma dos dados originais
     plt.hist(data, bins=100, density=True, alpha=0.5, label=strings[0])
 
@@ -182,7 +182,7 @@ def GaussianMixturePlot(data,gmm,strings,seed=19971215):
     plt.title(strings[2])
     plt.xlabel(strings[3])
     plt.ylabel(strings[4])
-    path = "../imagens_gerais/gmm_"+data.name
+    path = "../imagens_gerais/gmm_"+data.name+".jpg"
     plt.savefig(path)
     plt.show()
 
@@ -193,7 +193,9 @@ def GaussianMixturePlot(data,gmm,strings,seed=19971215):
 
 def PCAComparisionPlot(pumpData,originalData,pump,PCAHeaders,originalHeaders):
 
+    plt.rcParams['font.size'] = 15.0
     fig, axs = plt.subplots(2,1, figsize=(20,10),sharex=True)
+    
 
     pumpData[PCAHeaders].plot(ax=axs[1])
     originalData[originalHeaders].plot(ax=axs[0])
@@ -206,8 +208,12 @@ def PCAComparisionPlot(pumpData,originalData,pump,PCAHeaders,originalHeaders):
         axs[0].axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
         axs[1].axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
 
-
-    fig.suptitle("PCA Data of " + pump,fontsize=15);
+    
+    fig.suptitle("PCA Data of " + pump,fontsize=20);
     plt.tight_layout()
+    factor = 0.5
+    plt.rcParams.update({
+        'font.size': plt.rcParams['font.size'] * factor,
+    })
     
     return fig,axs

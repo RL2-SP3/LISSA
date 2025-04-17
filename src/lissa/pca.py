@@ -8,11 +8,12 @@ import numpy as np
 
 #apenas cabeçalhos operacionais, ou seja, aqueles que vão efetivamente na PCA
 def operationalHeader(exportData):
-    vibrationHeaders = [
-        'ESP Vibration X',
-        'ESP Vibration Y'
-    ]    
-    return list(set(pro.relevantHeader(exportData))-set(vibrationHeaders))
+    # vibrationHeaders = [
+    #     'ESP Vibration X',
+    #     'ESP Vibration Y'
+    # ]    
+    # return list(set(pro.relevantHeader(exportData))-set(vibrationHeaders))
+    return pro.relevantHeader(exportData)
 
 
 

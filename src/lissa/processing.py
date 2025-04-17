@@ -166,6 +166,17 @@ def SetHeaders():
 
     return Temperature, Pressure, Electrical, Vibration, Other
 
+def mad(series):
+    return np.median(np.abs(series - np.median(series)))
+
+def SeriesBack(Filter):
+       return (Filter
+        .reset_index()
+        .set_index("time")
+        .fillna(0)
+        .sort_index()
+        .drop(columns="Well_down")
+    )
 
 def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.DataFrame:
 
@@ -187,13 +198,21 @@ def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.Da
     'Well head pressure',
     'VSD power frequency',
     'ESP Motor Voltage',
-    'Current Mean'
+    'Current Mean',
     #'ESP Vibration Module',
-    #'ESP Power'
+    #'ESP Power',
+    "ESP Vibration X",
+    "ESP Vibration Y"
     ]
 
     Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median())/x.expanding().std())
 
+    # Measure = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median()))
+    # MAD = Measure.groupby("Well_down")[Headers].apply(lambda x: x.abs().expanding().median())
+
+    # Filter = SeriesBack(Measure)/SeriesBack(MAD)
+
+    
     Filter = (Filter
         .reset_index()
         .set_index("time")
@@ -204,8 +223,6 @@ def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.Da
 
    
     removedHeaders = [
-    "ESP Vibration X",
-    "ESP Vibration Y",
     'Water Cut @ 20degC - 1 atm',
     'Choke Opening',
     "Well aligned to Train A",

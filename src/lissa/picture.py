@@ -217,3 +217,19 @@ def PCAComparisionPlot(pumpData,originalData,pump,PCAHeaders,originalHeaders):
     })
     
     return fig,axs
+
+
+def ZScorePlot(totalData,pump,Headers):
+    pumpData =  totalData.loc[totalData["Well Run"]==pump]
+
+    fig, axs = plt.subplots(1,1,figsize=(20,7))
+    pumpData[Headers].plot(ax=axs)
+    axs.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
+
+    if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
+        axs.axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+        
+
+    fig.suptitle("Modified Z-score data of " + pump,fontsize=20);
+    
+    return fig,axs

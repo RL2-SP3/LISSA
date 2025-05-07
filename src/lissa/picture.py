@@ -28,7 +28,7 @@ def CorrGraphGen(corrAnalysis,plotHeaders,pump):
 
 
 
-def FigureComponents(pca,string,Headers):
+def FigureComponents(pca,string,Headers,typemethod="pca"):
 
     PCAt = pca.components_.T
 
@@ -43,15 +43,24 @@ def FigureComponents(pca,string,Headers):
 
     plt.yticks(ticks=range(0,len(Headers)),labels=Headers)
     plt.title(string,fontsize=16)
-    plt.colorbar(label="Correlation")
-
-    plt.xlabel("PCA Components",fontsize=13)
-    plt.ylabel("Original Data Features",fontsize=13)
-    plt.savefig("../imagens_gerais/PCA_matrix.jpg", bbox_inches='tight')
-    plt.tight_layout()
-    plt.show()
     
-    print(pca.explained_variance_ratio_.cumsum())
+
+    
+    if typemethod=="pca":
+        plt.colorbar(label="Correlation")
+        plt.xlabel("PCA Components",fontsize=13)
+        plt.ylabel("Original Data Features",fontsize=13)
+        plt.savefig("../imagens_gerais/PCA_matrix.jpg", bbox_inches='tight')
+        plt.tight_layout()
+        plt.show()
+        print(pca.explained_variance_ratio_.cumsum())
+    else:
+        plt.colorbar(label="Weights")
+        plt.xlabel("ICA Components",fontsize=13)
+        plt.ylabel("Original Data Features",fontsize=13)
+        plt.savefig("../imagens_gerais/PCA_matrix.jpg", bbox_inches='tight')
+        plt.tight_layout()
+        plt.show()
 
 
    

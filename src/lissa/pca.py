@@ -1,6 +1,6 @@
 import pandas as pd
 
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, FastICA
 
 import lissa.processing as pro
 
@@ -22,6 +22,12 @@ def ApplyPCA(exportData, n):
     pca = PCA(n_components=n)
     pca.fit(inputData)
     return pca
+
+def ApplyICA(exportData, n):   
+    inputData = exportData[operationalHeader(exportData)].loc[exportData["Well_down"]==0].fillna(0)
+    ica = FastICA(n_components=n)
+    ica.fit(inputData)
+    return ica
   
 
 def ReducePCA(pca, n, Headers,entireData):
@@ -31,6 +37,15 @@ def ReducePCA(pca, n, Headers,entireData):
     PCAData = entireData[Headers] @ pcat
 
     return PCAData
+    #PCAData.to_csv("data/PCA/PCAtotal.csv",index=False)
+
+def ReduceICA(ica, n, Headers,entireData):
+    ICAHeaders = [str(i) for i in range(0,n)]
+    icat = pd.DataFrame(ica.components_.T,columns=ICAHeaders)
+    icat.index = Headers
+    ICAData = entireData[Headers] @ icat
+
+    return ICAData
     #PCAData.to_csv("data/PCA/PCAtotal.csv",index=False)
 
 def ExportPCAData(PCAData,entireData):

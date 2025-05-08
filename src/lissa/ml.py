@@ -33,7 +33,7 @@ def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarra
         modelData = pumpData.loc[pumpData["Well_down"]==0].copy()
    
     
-        modelPlay = np.concat([modelPlay,real.to_numpy()])
+        modelPlay = np.concatenate([modelPlay,real.to_numpy()])
         if pump == pumpList[defIndex][0]:
             exportData = modelData
         else:

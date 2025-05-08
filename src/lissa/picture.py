@@ -7,6 +7,10 @@ import statsmodels.api as sm
 import seaborn as sns
 import matplotlib.colors as mcolors
 
+from sklearn.mixture import GaussianMixture
+from scipy.stats import norm
+from math import ceil, sqrt
+
 
 from scipy.stats import norm
 
@@ -242,3 +246,83 @@ def ZScorePlot(totalData,pump,Headers):
     fig.suptitle("Modified Z-score data of " + pump,fontsize=20);
     
     return fig,axs
+
+
+
+def PlotGMMMarginals(gmm: GaussianMixture, X: np.ndarray, bins=50):
+    n_features = X.shape[1]
+    n_components = gmm.means_.shape[0]
+
+    s = ceil(sqrt(n_features))
+    fig, axes = plt.subplots(s, s, figsize=(5 * s, 4 * s))
+    axes = axes.flatten()
+
+    for i in range(n_features):
+        ax = axes[i]
+        x = X[:, i]
+        ax.hist(x, bins=bins, density=True, alpha=0.5, label='Data hist')
+
+        xmin, xmax = x.min(), x.max()
+        x_grid = np.linspace(xmin, xmax, 1000)
+        total_pdf = np.zeros_like(x_grid)
+
+        for k in range(n_components):
+            mean = gmm.means_[k, i]
+            var = gmm.covariances_[k]
+            if gmm.covariance_type == 'full':
+                var = var[i, i]
+            elif gmm.covariance_type == 'diag':
+                var = var[i]
+            elif gmm.covariance_type == 'spherical':
+                var = var
+            std = np.sqrt(var)
+
+            weight = gmm.weights_[k]
+            pdf_k = weight * norm.pdf(x_grid, loc=mean, scale=std)
+            total_pdf += pdf_k
+            ax.plot(x_grid, pdf_k, '--', label=f'Comp {k+1}')
+
+        ax.plot(x_grid, total_pdf, '-', color='black', label='GMM Total')
+        ax.set_title(f'Feature {i+1}')
+        ax.legend()
+
+    # Remove subplots extras se s² > n_features
+    for j in range(n_features, len(axes)):
+        fig.delaxes(axes[j])
+
+    plt.tight_layout()
+    plt.show()
+    fig.savefig("../imagens_gerais/multiple_gmm.jpeg")
+
+
+
+def PlotHMMProbs(data,model):
+
+    if type(data)==pd.Series:
+        totalReshaped = data.to_numpy().reshape(-1,1)
+    else:
+        totalReshaped = data.to_numpy()
+    
+    df = pd.DataFrame(model.predict_proba(totalReshaped))
+
+    # Índices de tempo
+    time = np.arange(len(df))
+
+    # Criar figura
+    fig, ax = plt.subplots(figsize=(20, 6))
+
+    # Cores para os estados
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c','#4cff2c','#fcff2c']
+
+    # Gráfico de área empilhada com transparência (alpha)
+    ax.stackplot(time, df.T, labels=df.columns, colors=colors, alpha=0.5)
+
+    # Configurações do gráfico
+    ax.set_xlabel("Tempo")
+    ax.set_ylabel("Probabilidade Empilhada (%)")
+    ax.set_title("Probabilidades do HMM (100% Stacked Area Chart)")
+    ax.legend(title="Estados", loc='upper left')
+    plt.ylim(0, 1)  # Mantém o eixo Y de 0 a 1 (100%)
+
+    # Exibir o gráfico
+    plt.show()

@@ -182,14 +182,15 @@ def GaussianMixturePlot(data,gmm,strings,figsize=(7,5)):
     fig = plt.figure(figsize=figsize)
     # Plotando histograma dos dados originais
     plt.hist(data, bins=100, density=True, alpha=0.5, label=strings[0])
+    plt.xlim(0,17)
 
     # Plotando cada gaussiana individualmente
     for i in range(model.means_.shape[0]):
         plt.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]), label=f"{strings[1]} {i+1}")
 
     # Plotando a soma das gaussianas
-    pdf = np.exp(gmm.score_samples(x.reshape(-1, 1)))
-    plt.plot(x, pdf, label="Soma das Gaussianas", color="blue", linestyle="dashed")
+    #pdf = np.exp(gmm.score_samples(x.reshape(-1, 1)))
+    #plt.plot(x, pdf, label="Soma das Gaussianas", color="blue", linestyle="dashed")
 
     plt.legend()
     plt.title(strings[2])

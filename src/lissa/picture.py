@@ -14,6 +14,30 @@ from math import ceil, sqrt
 
 from scipy.stats import norm
 
+def Traducao():
+    return {
+    'VSD power frequency': "Frequência do AVV",
+    'ESP motor temperature': "Temperatura do motor da ESP",
+    'ESP intake Pressure':"Pressão na Entrada da ESP",
+    'Water Cut @ 20degC - 1 atm':"Fração de água @ ",
+    'ESP intake temperature':"Temperatura na Entrada da ESP", 
+    'ESP discharge pressure':"Pressão de Descarga da ESP", 
+    'Choke Opening':"Abertura da Válvula",
+    'Well head pressure':"Pressão na Cabeça do Poço",#
+    'Well head Temperature' : "Temperatura na Cabeça do Poço",
+    'Well aligned to Train A': "Poço Alinhado a A",
+    'Well aligned to Train B': "Poço Alinhado a b",
+    'ESP Motor Voltage': "Tensão do Motor da ESP",
+    'ESP Vibration X': "Vibração da ESP em X",
+    'ESP Vibration Y': "Vibração da ESP em Y",
+    'Well Run': "Corrida do Poço",
+    'Well_down': "Poço desativado",
+    'Pump Info': "Informação da bomba",
+    'Failure Info': "Informação da Falha",
+    'Failure': "Falha",
+    'Current Mean': "Média da corrente"
+    }
+
 #directed imported from analysis.py
 def CorrGraphGen(corrAnalysis,plotHeaders,pump):
     dataCorrelation = corrAnalysis[plotHeaders].corr(method='pearson')
@@ -32,7 +56,7 @@ def CorrGraphGen(corrAnalysis,plotHeaders,pump):
 
 
 
-def FigureComponents(pca,string,Headers,typemethod="pca"):
+def FigureComponents(pca,string,Headers, plotName, typemethod="pca", savePath = "../imagens_gerais/"):
 
     PCAt = pca.components_.T
 
@@ -54,7 +78,7 @@ def FigureComponents(pca,string,Headers,typemethod="pca"):
         plt.colorbar(label="Correlation")
         plt.xlabel("PCA Components",fontsize=13)
         plt.ylabel("Original Data Features",fontsize=13)
-        plt.savefig("../imagens_gerais/PCA_matrix.jpg", bbox_inches='tight')
+        plt.savefig(savePath+plotName, bbox_inches='tight')
         plt.tight_layout()
         plt.show()
         print(pca.explained_variance_ratio_.cumsum())
@@ -62,10 +86,10 @@ def FigureComponents(pca,string,Headers,typemethod="pca"):
         plt.colorbar(label="Weights")
         plt.xlabel("ICA Components",fontsize=13)
         plt.ylabel("Original Data Features",fontsize=13)
-        plt.savefig("../imagens_gerais/PCA_matrix.jpg", bbox_inches='tight')
+        plt.savefig(savePath+plotName, bbox_inches='tight')
         plt.tight_layout()
         plt.show()
-
+    return plt.gcf(), plt.gca()
 
    
 #realiza os qq plots dos dados e das colunas que forem necessárias 
@@ -327,3 +351,4 @@ def PlotHMMProbs(data,model):
 
     # Exibir o gráfico
     plt.show()
+

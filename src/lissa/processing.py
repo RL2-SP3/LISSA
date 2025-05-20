@@ -324,4 +324,3 @@ def FilterCreation(exportData,windowSize,filterType):
         .drop(columns="group")
         .fillna(0))
     
-

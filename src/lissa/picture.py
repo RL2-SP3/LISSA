@@ -11,7 +11,6 @@ from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
 from math import ceil, sqrt
 
-
 from scipy.stats import norm
 
 def Traducao():
@@ -35,7 +34,8 @@ def Traducao():
     'Pump Info': "Informação da bomba",
     'Failure Info': "Informação da Falha",
     'Failure': "Falha",
-    'Current Mean': "Média da corrente"
+    'Current Mean': "Média da corrente",
+    "":""
     }
 
 #directed imported from analysis.py
@@ -56,7 +56,11 @@ def CorrGraphGen(corrAnalysis,plotHeaders,pump):
 
 
 
-def FigureComponents(pca,string,Headers, plotName, typemethod="pca", savePath = "../imagens_gerais/"):
+def FigureComponents(
+        pca, Headers, plotName, 
+        listOfNames = ["PCA - Measures and Variance Components", "Correlation","PCA Components", "Original Data Features"],
+        savePath = "../imagens_gerais/",
+        english = True):
 
     PCAt = pca.components_.T
 
@@ -68,28 +72,22 @@ def FigureComponents(pca,string,Headers, plotName, typemethod="pca", savePath = 
         for j in range(PCAt.shape[1]):
             plt.text(j, i, f'{PCAt[i, j]:.2f}', ha='center', va='center', color='black',fontsize=10)
 
-
-    plt.yticks(ticks=range(0,len(Headers)),labels=Headers)
-    plt.title(string,fontsize=16)
-    
-
-    
-    if typemethod=="pca":
-        plt.colorbar(label="Correlation")
-        plt.xlabel("PCA Components",fontsize=13)
-        plt.ylabel("Original Data Features",fontsize=13)
-        plt.savefig(savePath+plotName, bbox_inches='tight')
-        plt.tight_layout()
-        plt.show()
-        print(pca.explained_variance_ratio_.cumsum())
+    if english:
+        plt.yticks(ticks=range(0,len(Headers)),labels=Headers)
     else:
-        plt.colorbar(label="Weights")
-        plt.xlabel("ICA Components",fontsize=13)
-        plt.ylabel("Original Data Features",fontsize=13)
-        plt.savefig(savePath+plotName, bbox_inches='tight')
-        plt.tight_layout()
-        plt.show()
+        mapa = Traducao()
+        newHeaders = [mapa[item] for item in Headers]
+        plt.yticks(ticks=range(0,len(Headers)),labels=newHeaders)
+    
+    plt.title(listOfNames[0],fontsize=16)
+    plt.colorbar(label=listOfNames[1])
+    plt.xlabel(listOfNames[2],fontsize=13)
+    plt.ylabel(listOfNames[3],fontsize=13)
+    plt.savefig(savePath+plotName, bbox_inches='tight')
+    plt.tight_layout()
+    print(pca.explained_variance_ratio_.cumsum())
     return plt.gcf(), plt.gca()
+    
 
    
 #realiza os qq plots dos dados e das colunas que forem necessárias 

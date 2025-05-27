@@ -91,23 +91,37 @@ def FigureComponents(
 
    
 #realiza os qq plots dos dados e das colunas que forem necessárias 
-def QQPlots(data,relevantHeaders):
+def QQPlots(data,relevantHeaders,lineType="s", english=True,titleFontsize=20,ydist=1):
 
     n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
     fig, axs = plt.subplots(n,n,figsize=(20,20))
+
+    if not english:
+        mapa = Traducao()
+        fig.suptitle("Gráfico Q-Q",fontsize=titleFontsize, y=ydist)
+    else:
+        fig.suptitle("Q-Q Plot",fontsize=titleFontsize,y=ydist)
+        
     
     if n > 1:   
         axs = axs.ravel()
         i = 0
         for prop in relevantHeaders:
-            sm.qqplot(data[prop], line='s',ax=axs[i])
-            axs[i].title.set_text(prop)
+            sm.qqplot(data[prop], line=lineType,ax=axs[i])
+            if not english:
+                axs[i].title.set_text(mapa[prop])
+                axs[i].set_xlabel("Quantil teórico")
+                axs[i].set_ylabel("Quantil da amostra")
+            else:
+                axs[i].title.set_text(prop)
             i +=1
 
         for j in range(i,n*n):
             axs[j].remove()
     else:
-         sm.qqplot(data, line='s',ax=axs)
+         sm.qqplot(data, line=lineType,ax=axs)
+
+    fig.tight_layout(pad=1.1)
 
     return fig,axs
 
@@ -255,19 +269,24 @@ def PCAComparisionPlot(pumpData,originalData,pump,PCAHeaders,originalHeaders):
     return fig,axs
 
 
-def ZScorePlot(totalData,pump,Headers):
+def ZScorePlot(totalData,pump,Headers,english = True):
     pumpData =  totalData.loc[totalData["Well Run"]==pump]
 
     fig, axs = plt.subplots(1,1,figsize=(20,7))
     pumpData[Headers].plot(ax=axs)
-    axs.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
 
     if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
         axs.axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
-        
-
-    fig.suptitle("Modified Z-score data of " + pump,fontsize=20);
     
+
+    if not english:
+        axs.legend([Traducao()[item] for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
+        axs.set_xlabel("Tempo")
+        fig.suptitle("Gráfico do Z-score " + pump,fontsize=20);
+    else:
+        fig.suptitle("Modified Z-score data of " + pump,fontsize=20);           
+
+        
     return fig,axs
 
 

@@ -35,7 +35,8 @@ def Traducao():
     'Failure Info': "Informação da Falha",
     'Failure': "Falha",
     'Current Mean': "Média da corrente",
-    "":""
+    "":"",
+    "ESP Vibration Module":"Módulo da Vibração na ESP"
     }
 
 #directed imported from analysis.py
@@ -85,7 +86,6 @@ def FigureComponents(
     plt.ylabel(listOfNames[3],fontsize=13)
     plt.savefig(savePath+plotName, bbox_inches='tight')
     plt.tight_layout()
-    print(pca.explained_variance_ratio_.cumsum())
     return plt.gcf(), plt.gca()
     
 

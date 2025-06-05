@@ -66,8 +66,10 @@ def ExportPCAData(PCAData,entireData):
     ]
 
     vibrationHeaders = [
-        'ESP Vibration X',
-        'ESP Vibration Y'
+        #'ESP Vibration X',
+        #'ESP Vibration Y',
+        'ESP Vibration Module'
+
     ]
     PCAHeaders = list(PCAData)
     PCAData = pd.concat([PCAData,entireData[notNumericalHeaders+inputHeaders+vibrationHeaders]],axis=1)

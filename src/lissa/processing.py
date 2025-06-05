@@ -93,9 +93,9 @@ def FeatureCreation(entireData:pd.DataFrame)->pd.DataFrame:
     #     entireData["ESP motor Current - phase B"]+
     #     entireData["ESP motor Current - phase C"])/3
 
-    # entireData["ESP Vibration Module"] = (entireData["ESP Vibration X"].pow(2)+entireData["ESP Vibration Y"].pow(2)).pow(1/2)
+    entireData["ESP Vibration Module"] = (entireData["ESP Vibration X"].pow(2)+entireData["ESP Vibration Y"].pow(2)).pow(1/2)
 
-    # entireData["ESP Motor Voltage"] = entireData["ESP Motor Voltage"]/1000
+    entireData["ESP Motor Voltage"] = entireData["ESP Motor Voltage"]/1000
 
     # entireData["ESP Power"] = entireData["ESP Motor Voltage"]*entireData["Current Mean"]
 
@@ -111,8 +111,8 @@ def FeatureCreation(entireData:pd.DataFrame)->pd.DataFrame:
         "ESP motor Current - phase A",
         "ESP motor Current - phase B",
         "ESP motor Current - phase C",
-        # "ESP Vibration X",
-        # "ESP Vibration Y",
+        "ESP Vibration X",
+        "ESP Vibration Y",
         # "ESP Motor Voltage",
         'ESP differential pressure', #we are going to try to find this in PCA
         # "Well head pressure",
@@ -199,13 +199,20 @@ def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.Da
     'VSD power frequency',
     'ESP Motor Voltage',
     'Current Mean',
-    #'ESP Vibration Module',
+    'ESP Vibration Module',
     #'ESP Power',
-    "ESP Vibration X",
-    "ESP Vibration Y"
+    #"ESP Vibration X",
+    #"ESP Vibration Y"
     ]
 
     Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median())/x.expanding().std())
+
+
+    #Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().min())/(x.expanding().max()-x.expanding().min()))
+    
+    #Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median()))
+
+    #Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()/x.ewm(span=24*windowSize).std())/(x.ewm(span=365).mean()/x.ewm(span=365).std()))
 
     # Measure = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median()))
     # MAD = Measure.groupby("Well_down")[Headers].apply(lambda x: x.abs().expanding().median())

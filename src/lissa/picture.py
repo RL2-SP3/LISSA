@@ -241,27 +241,38 @@ def GaussianMixturePlot(data,gmm,strings,figsize=(7,5)):
 
 
 
-def PCAComparisionPlot(pumpData,originalData,pump,PCAHeaders,originalHeaders):
+def ComparisionPlot(originalData,newData,title,newHeaders,originalHeaders,
+                    factor = 0.5, 
+                    english=True,
+                    failureShow = True,
+                    figsizeT=(20,10),
+                    padF=1.08):
 
     plt.rcParams['font.size'] = 15.0
-    fig, axs = plt.subplots(2,1, figsize=(20,10),sharex=True)
-    
+    fig, axs = plt.subplots(2,1, figsize=figsizeT,sharex=True)
 
-    pumpData[PCAHeaders].plot(ax=axs[1])
+    newData[newHeaders].plot(ax=axs[1])
     originalData[originalHeaders].plot(ax=axs[0])
-    axs[0].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10)
-    axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10)
 
 
 
-    if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:       
-        axs[0].axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
-        axs[1].axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
 
+    if (newData.loc[newData["Failure"]==True].shape[0] != 0) & failureShow:       
+        axs[0].axvline(newData.loc[newData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+        axs[1].axvline(newData.loc[newData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
     
-    fig.suptitle("PCA Data of " + pump,fontsize=20);
-    plt.tight_layout()
-    factor = 0.5
+    fig.suptitle(title,fontsize=20);
+
+    if not english:
+        axs[0].legend([Traducao()[item] for item in originalHeaders],loc='upper left',bbox_to_anchor=(1, 1),fontsize=10, title="Dados Padronizados")
+        axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10,title="Dados Transformados")
+    else:
+        axs[0].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10,title="Standardized Data")
+        axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10,title="Transformed Data")
+    
+    
+    
+    plt.tight_layout(pad=padF)
     plt.rcParams.update({
         'font.size': plt.rcParams['font.size'] * factor,
     })

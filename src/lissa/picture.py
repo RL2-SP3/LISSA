@@ -13,8 +13,8 @@ from math import ceil, sqrt
 
 from scipy.stats import norm
 
-def Traducao():
-    return {
+def Traducao(Header):
+    dicionario =  {
     'VSD power frequency': "Frequência do AVV",
     'ESP motor temperature': "Temperatura do motor da ESP",
     'ESP intake Pressure':"Pressão na Entrada da ESP",
@@ -38,6 +38,11 @@ def Traducao():
     "":"",
     "ESP Vibration Module":"Módulo da Vibração na ESP"
     }
+
+    if Header in list(dicionario):
+        return dicionario[Header]
+    else:
+        return Header
 
 #directed imported from analysis.py
 def CorrGraphGen(corrAnalysis,plotHeaders,pump):
@@ -76,8 +81,7 @@ def FigureComponents(
     if english:
         plt.yticks(ticks=range(0,len(Headers)),labels=Headers)
     else:
-        mapa = Traducao()
-        newHeaders = [mapa[item] for item in Headers]
+        newHeaders = [Traducao(item) for item in Headers]
         plt.yticks(ticks=range(0,len(Headers)),labels=newHeaders)
     
     plt.title(listOfNames[0],fontsize=16)
@@ -91,17 +95,12 @@ def FigureComponents(
 
    
 #realiza os qq plots dos dados e das colunas que forem necessárias 
-def QQPlots(data,relevantHeaders,lineType="s", english=True,titleFontsize=20,ydist=1):
+def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFontsize=20,ydist=1):
 
     n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
     fig, axs = plt.subplots(n,n,figsize=(20,20))
 
-    if not english:
-        mapa = Traducao()
-        fig.suptitle("Gráfico Q-Q",fontsize=titleFontsize, y=ydist)
-    else:
-        fig.suptitle("Q-Q Plot",fontsize=titleFontsize,y=ydist)
-        
+    fig.suptitle(title,fontsize=titleFontsize, y=ydist)    
     
     if n > 1:   
         axs = axs.ravel()
@@ -109,7 +108,7 @@ def QQPlots(data,relevantHeaders,lineType="s", english=True,titleFontsize=20,ydi
         for prop in relevantHeaders:
             sm.qqplot(data[prop], line=lineType,ax=axs[i])
             if not english:
-                axs[i].title.set_text(mapa[prop])
+                axs[i].title.set_text(Traducao(prop))
                 axs[i].set_xlabel("Quantil teórico")
                 axs[i].set_ylabel("Quantil da amostra")
             else:
@@ -264,7 +263,7 @@ def ComparisionPlot(originalData,newData,title,newHeaders,originalHeaders,
     fig.suptitle(title,fontsize=20);
 
     if not english:
-        axs[0].legend([Traducao()[item] for item in originalHeaders],loc='upper left',bbox_to_anchor=(1, 1),fontsize=10, title="Dados Padronizados")
+        axs[0].legend([Traducao(item) for item in originalHeaders],loc='upper left',bbox_to_anchor=(1, 1),fontsize=10, title="Dados Padronizados")
         axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10,title="Dados Transformados")
     else:
         axs[0].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10,title="Standardized Data")
@@ -291,7 +290,7 @@ def ZScorePlot(totalData,pump,Headers,english = True):
     
 
     if not english:
-        axs.legend([Traducao()[item] for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
+        axs.legend([Traducao(item) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
         axs.set_xlabel("Tempo")
         fig.suptitle("Gráfico do Z-score " + pump,fontsize=20);
     else:

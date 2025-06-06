@@ -95,8 +95,9 @@ def FigureComponents(
 
    
 #realiza os qq plots dos dados e das colunas que forem necessárias 
-def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFontsize=20,ydist=1):
+def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFontsize=20,ydist=1,generalFontSize=15):
 
+    plt.rcParams["font.size"]=generalFontSize
     n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
     fig, axs = plt.subplots(n,n,figsize=(20,20))
 
@@ -120,7 +121,7 @@ def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFon
     else:
          sm.qqplot(data, line=lineType,ax=axs)
 
-    fig.tight_layout(pad=1.1)
+    fig.tight_layout(pad=1.2)
 
     return fig,axs
 

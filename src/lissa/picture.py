@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.colors as mcolors
 
 from sklearn.mixture import GaussianMixture
-from scipy.stats import norm
+import scipy.stats as ss
 from math import ceil, sqrt
 
 from scipy.stats import norm
@@ -95,11 +95,17 @@ def FigureComponents(
 
    
 #realiza os qq plots dos dados e das colunas que forem necessárias 
-def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFontsize=20,ydist=1,generalFontSize=15):
+def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFontsize=20,ydist=1,generalFontSize=15, distO = norm):
 
     plt.rcParams["font.size"]=generalFontSize
-    n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
-    fig, axs = plt.subplots(n,n,figsize=(20,20))
+    n = len(relevantHeaders)
+    if not (n % 2):
+        n = len(relevantHeaders) + 1
+    
+    fig, axs = plt.subplots(2,int(n/2),figsize=(40,15))    
+    
+    # n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
+    # fig, axs = plt.subplots(n,n,figsize=(20,20))
 
     fig.suptitle(title,fontsize=titleFontsize, y=ydist)    
     
@@ -107,7 +113,7 @@ def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFon
         axs = axs.ravel()
         i = 0
         for prop in relevantHeaders:
-            sm.qqplot(data[prop], line=lineType,ax=axs[i])
+            sm.qqplot(data[prop], line=lineType,ax=axs[i],dist=distO)
             if not english:
                 axs[i].title.set_text(Traducao(prop))
                 axs[i].set_xlabel("Quantil teórico")
@@ -116,8 +122,10 @@ def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFon
                 axs[i].title.set_text(prop)
             i +=1
 
-        for j in range(i,n*n):
-            axs[j].remove()
+        # for j in range(i,n*n):
+        #     axs[j].remove()
+        if (len(relevantHeaders) % 2):
+            axs[n].remove()
     else:
          sm.qqplot(data, line=lineType,ax=axs)
 

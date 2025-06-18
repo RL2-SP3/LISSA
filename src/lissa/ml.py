@@ -165,6 +165,7 @@ def GaussianMixtureFit(data,n_components,seed):
         reshapedData = data.to_numpy()
     gmm = GaussianMixture(n_components=n_components, random_state=seed,covariance_type="full")
     gmm.fit(reshapedData)
+    print("GMM AIC: " + str(gmm.aic(reshapedData)))
     print("GMM BIC: " + str(gmm.bic(reshapedData)))
 
     return gmm

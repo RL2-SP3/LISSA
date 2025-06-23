@@ -63,7 +63,9 @@ def CorrGraphGen(corrAnalysis,plotHeaders,pump):
 
 
 def FigureComponents(
-        pca, Headers, plotName, 
+        pca, 
+        Headers, 
+        plotName, 
         listOfNames = ["PCA - Measures and Variance Components", "Correlation","PCA Components", "Original Data Features"],
         savePath = "../imagens_gerais/",
         english = True):

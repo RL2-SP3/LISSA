@@ -33,7 +33,7 @@ import locale
 
 __all__ = ["ml","pca","picture","processing"]
 
-version = "2025-01-31"
+version = "2025-06-22"
 
 # Tenta mudar o locale para pt_BR (varia por sistema)
 try:

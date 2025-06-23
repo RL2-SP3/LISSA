@@ -1,54 +1,49 @@
 import pandas as pd
 
-from sklearn.decomposition import PCA, FastICA
-
 import lissa.processing as pro
 
-import numpy as np
 
-#apenas cabeçalhos operacionais, ou seja, aqueles que vão efetivamente na PCA
-def operationalHeader(exportData):
-    # vibrationHeaders = [
-    #     'ESP Vibration X',
-    #     'ESP Vibration Y'
-    # ]    
-    # return list(set(pro.relevantHeader(exportData))-set(vibrationHeaders))
-    return pro.relevantHeader(exportData)
+def AutoModelApplier(model, exportData: pd.DataFrame):
+    '''
+        Set correctly the data to be fit, considering only relevant headers and data to the transformation
+    '''
+    #apenas cabeçalhos operacionais, ou seja, aqueles que vão efetivamente na PCA
 
+    inputData = exportData[pro.relevantHeader(exportData)].loc[exportData["Well_down"]==0].fillna(0) 
+    model.fit(inputData)
+    return model
 
+def AutoReduce(
+        model,
+        n:                  int,
+        originalHeaders:    list,
+        entireData:         pd.DataFrame
+        ): #-> Tuple[TransformClass, list]
+    '''
+        Similar to fit_transform method, but allows the model just to be fitted, not necessarily transformed.
 
-def ApplyPCA(exportData, n):   
-    inputData = exportData[operationalHeader(exportData)].loc[exportData["Well_down"]==0].fillna(0)
-    pca = PCA(n_components=n)
-    pca.fit(inputData)
-    return pca
+        Indeed, it could be directly fit_transform
+    '''
 
-def ApplyICA(exportData, n):   
-    inputData = exportData[operationalHeader(exportData)].loc[exportData["Well_down"]==0].fillna(0)
-    ica = FastICA(n_components=n)
-    ica.fit(inputData)
-    return ica
-  
+    transformHeaders = [str(i) for i in range(0,n)]
+    transformedTransposed = pd.DataFrame(model.components_.T,columns=transformHeaders)
+    transformedTransposed.index = originalHeaders
+    transformedData = entireData[originalHeaders] @ transformedTransposed
+    return transformedData, transformHeaders
 
-def ReducePCA(pca, n, Headers,entireData):
-    PCAHeaders = [str(i) for i in range(0,n)]
-    pcat = pd.DataFrame(pca.components_.T,columns=PCAHeaders)
-    pcat.index = Headers
-    PCAData = entireData[Headers] @ pcat
+def ExportPCAData(
+        PCAData:    pd.DataFrame,
+        entireData: pd.DataFrame,
+        export=False,
+        path="data/PCA/PCAtotal.csv"
+        ) -> pd.DataFrame:
+    '''
+        Integrates the transformed data with the previous non transformed data.
+        
+        By default, does not exports PCA Data to CSV file
+    '''
 
-    return PCAData
-    #PCAData.to_csv("data/PCA/PCAtotal.csv",index=False)
-
-def ReduceICA(ica, n, Headers,entireData):
-    ICAHeaders = [str(i) for i in range(0,n)]
-    icat = pd.DataFrame(ica.components_.T,columns=ICAHeaders)
-    icat.index = Headers
-    ICAData = entireData[Headers] @ icat
-
-    return ICAData
-    #PCAData.to_csv("data/PCA/PCAtotal.csv",index=False)
-
-def ExportPCAData(PCAData,entireData):
+    #depending on the approach, these headers might change.
     notNumericalHeaders = [
         "Well Run",
         "Failure",
@@ -68,13 +63,36 @@ def ExportPCAData(PCAData,entireData):
     vibrationHeaders = [
         #'ESP Vibration X',
         #'ESP Vibration Y',
-        'ESP Vibration Module'
+        #'ESP Vibration Module'
 
     ]
-    PCAHeaders = list(PCAData)
+
+
     PCAData = pd.concat([PCAData,entireData[notNumericalHeaders+inputHeaders+vibrationHeaders]],axis=1)
-    PCAData["Radius"] = PCAData[PCAHeaders].pow(2).sum(axis=1).pow(1/2)
+    PCAData["Radius"] = PCAData.pow(2).sum(axis=1).pow(1/2)
     
-    #PCAData.to_csv("data/PCA/PCAtotal.csv",index=True)
+    if export:
+        PCAData.to_csv(path,index=True)
 
     return PCAData
+
+
+'''
+Deprecated functions
+'''
+
+# def ApplyPCA(exportData, n):   
+#     pca = PCA(n_components=n)
+#     AutoModelApplier(PCA(n_components=n),exportData)
+#     return pca
+
+# def ApplyICA(exportData, n):   
+#     ica = FastICA(n_components=n)
+#     AutoModelApplier(ica,exportData)
+#     return ica
+
+# def ReducePCA(pca, n, originalHeaders,entireData):
+#    return AutoReduce(pca,n,entireData=entireData,originalHeaders=originalHeaders)
+
+# def ReduceICA(ica, n, originalHeaders,entireData):
+#     return AutoReduce(ica,n,entireData=entireData,originalHeaders=originalHeaders)

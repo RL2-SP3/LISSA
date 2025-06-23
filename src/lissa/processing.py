@@ -80,7 +80,10 @@ def FailureMerge(baseData: pd.DataFrame ,dirFile:str ,fileName:str) -> Tuple[pd.
 def FeatureCreation(entireData:pd.DataFrame)->pd.DataFrame:
     '''
     This function is intended to process columns for feature creation. 
-    Currently is only synthetizing current A,B,C in a norm-2 and converting columns written as 1/100 units in fractions.
+
+    Currently is only synthetizing current A,B,C in a norm-2, doing the same for vibrations and converting columns written as 1/100 units in fractions.
+
+    Users might want to deal with new features. It is not the best pratice, but they should be written here (inside the function).
     
     '''
     entireData["Current Mean"] = (
@@ -207,6 +210,7 @@ def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.Da
 
     Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median())/x.expanding().std())
 
+    #all things i had tried:
 
     #Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().min())/(x.expanding().max()-x.expanding().min()))
     
@@ -266,6 +270,26 @@ def ProcessData(pumpList: list ,entireData: pd.DataFrame ,windowSize=1,totalData
     return totalData
 
 
+def relevantHeader(data: pd.DataFrame) -> np.ndarray:
+
+    '''
+        Lists only numerical headers in dataset. 
+    '''
+    Headers = list(data) #all headers
+    notNumericalHeaders = [
+        "Well Run",
+        "Failure",
+        "Well_down",
+        "time",
+        "Well aligned to Train A",
+        "Well aligned to Train B",
+        'Water Cut @ 20degC - 1 atm',
+        'Choke Opening',
+        'Failure Info',
+        'Pump Info'
+        ]
+    return np.sort(list(set(Headers)-set(notNumericalHeaders)))
+
 
 
 
@@ -299,23 +323,6 @@ def StandardizerFilter(x):
 #Get all numerical Headers 
 
 #improve: select numerical only
-
-def relevantHeader(data):
-    Headers = list(data) #all headers
-    notNumericalHeaders = [
-        "Well Run",
-        "Failure",
-        "Well_down",
-        "time",
-        "Well aligned to Train A",
-        "Well aligned to Train B",
-        'Water Cut @ 20degC - 1 atm',
-        'Choke Opening',
-        'Failure Info',
-        'Pump Info'
-        ]
-    return np.sort(list(set(Headers)-set(notNumericalHeaders)))
-
 
 def FilterCreation(exportData,windowSize,filterType):
 

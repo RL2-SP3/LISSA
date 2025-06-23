@@ -13,10 +13,6 @@ def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarra
     '''
         Returns the data related of online pumps and it's number of records for each pump.
     '''
-    #return data["Well Run"].value_counts()[data["Well Run"].unique()].to_numpy()
-
-    #exportData = pd.DataFrame(columns=list(entireData))
-
     modelPlay = np.array([])
     for pump in pumpList[defIndex]:
         pumpData = entireData.loc[entireData["Well Run"]==pump].copy()
@@ -90,31 +86,29 @@ def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.ndarray:
     return power_transform(data[columnName].to_numpy().reshape(-1,1)).reshape(1,-1)[0]
 
 
-# def HiddenMarkovModel(modelData,PCAData,n,seed,X_train,trainLength,totalLength,Headers,outputHeaders):
-#     model = hmm.GaussianHMM(n_components=n,random_state=seed)
-
-#     if type(X_train[Headers]) == pd.Series:
-#         reshapedData = X_train[Headers].to_numpy().reshape(-1,1)
-#         model.fit(reshapedData,trainLength)
-#         modelData[outputHeaders] = model.predict(modelData[Headers].to_numpy().reshape(-1,1),totalLength)+1;
-#     else:
-#         reshapedData = X_train[Headers].to_numpy()
-#         model.fit(reshapedData,trainLength)
-#         modelData[outputHeaders] = model.predict(modelData[Headers].to_numpy(),totalLength)+1;
-    
-#     print(np.log(model.aic(reshapedData)))
-
-#     PCAData[outputHeaders] = 0
-#     PCAData.loc[modelData[outputHeaders].index,outputHeaders] = modelData[outputHeaders]
-#     return model
-
-
-def StateConversion(distribution,n):
+def StateConversion(distribution: np.ndarray ,n: int) -> dict:
+    '''
+        The HMM does the state classification randomly, this means that the state 0 not necessarily occurs most. 
+        Therefore, this function reorganizes the states, with the higher number meaning the lowest probability state in distribution.
+    '''
     stateOrder = np.argsort(distribution)+1
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
 
-def GaussianHiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full",algorithm="viterbi"):
+def GaussianHiddenMarkovModel(
+        X_train:        pd.Series | pd.DataFrame , 
+        trainLength:    np.ndarray, 
+        mainSeed:       int, 
+        n:              int,
+        covar_type="full",
+        algorithm="viterbi"
+        ) -> hmm.GaussianHMM:
+    
+    '''
+        This function defines a model and reshapes if the input is a pd.Series.
+        It allows the code to be more easier to deal without knowing hmmlearn.
+    '''
+    
     model = hmm.GaussianHMM(
         n_components=n,
         covariance_type=covar_type,
@@ -123,64 +117,98 @@ def GaussianHiddenMarkovModel(X_train, trainLength, mainSeed, n,covar_type="full
         n_iter = 100,
         tol=0.01)
 
-    if type(X_train) == pd.Series:
-        reshapedData = X_train.to_numpy().reshape(-1,1)
-        model.fit(reshapedData,trainLength)
-    else:
-        reshapedData = X_train.to_numpy()
-        model.fit(reshapedData,trainLength)
-
-    return model
-
-def HMMTrainer(X_train, trainLength, model):
-    if type(X_train) == pd.Series:
-        reshapedData = X_train.to_numpy().reshape(-1,1)
-    else:
-        reshapedData = X_train.to_numpy()
-
-    model.fit(reshapedData,trainLength)
-
-    return model
-
-
-def PostProcessing(model, PCAData, modelData,inputHeader, outputHeader, totalLength, verbose=True):
+    reshapedData = X_train.to_numpy()
     
+    if type(X_train) == pd.Series:
+        reshapedData = reshapedData.reshape(-1,1)
+        
+    model.fit(reshapedData,trainLength)
+    
+    return model
+
+
+def PostProcessing(
+        model:          hmm.BaseHMM, 
+        originalData:   pd.Series | pd.DataFrame, 
+        modelData:      pd.Series | pd.DataFrame,
+        inputHeader:    str, 
+        outputHeader:   str, 
+        totalLength:    np.ndarray, 
+        verbose=True
+        ):
+    
+    '''
+        Generates the states related to the model and the dataset, setting them on the original dataframe.
+        Also, if verbose, print the AIC and BIC for comparision.
+    '''
+    
+    totalReshaped = modelData[inputHeader].to_numpy()
+
     if type(modelData[inputHeader])==pd.Series:
-        totalReshaped = modelData[inputHeader].to_numpy().reshape(-1,1)
-        modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
-    else:
-        totalReshaped = modelData[inputHeader].to_numpy()
-        modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
+        totalReshaped = totalReshaped.reshape(-1,1)
+
+    modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
 
     if verbose:
         print("AIC: " + str(model.aic(totalReshaped))+ " BIC: " + str(model.bic(totalReshaped)))
-    PCAData[outputHeader] = 0
-    PCAData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
+    
+    originalData[outputHeader] = 0
+    originalData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
+
+    return None
 
 
-def GaussianMixtureFit(data,n_components,seed):
+def GaussianMixtureFit(
+        data:           pd.Series | pd.DataFrame ,
+        n_components:   int,
+        seed:           int,
+        verbose=True
+        ):
+    
+    '''
+        Fits a Gaussian Mixture Model into provided data
+    '''
+    
+
+    reshapedData = data.to_numpy()
     if type(data) == pd.Series:
-        reshapedData = data.to_numpy().reshape(-1,1)
-    else:
-        reshapedData = data.to_numpy()
+        reshapedData = reshapedData.reshape(-1,1)
+    
     gmm = GaussianMixture(n_components=n_components, random_state=seed,covariance_type="full")
     gmm.fit(reshapedData)
-    print("GMM AIC: " + str(gmm.aic(reshapedData)))
-    print("GMM BIC: " + str(gmm.bic(reshapedData)))
+
+    if verbose:
+        print("GMM AIC: " + str(gmm.aic(reshapedData)))
+        print("GMM BIC: " + str(gmm.bic(reshapedData)))
 
     return gmm
 
-def StandardMarkovModel(n,seed, gmm):
-    model = hmm.GaussianHMM(
-        n_components=n,
-        random_state=seed,
-        covariance_type="full",
-        init_params="st",
-        #algorithm="map"
-        )
+
+
+
+'''
+    These functions might be deprecated:
+'''
+# def HMMTrainer(X_train, trainLength, model):
+#     if type(X_train) == pd.Series:
+#         reshapedData = X_train.to_numpy().reshape(-1,1)
+#     else:
+#         reshapedData = X_train.to_numpy()
+
+#     model.fit(reshapedData,trainLength)
+
+#     return model
+
+# def StandardMarkovModel(n,seed, gmm):
+#     model = hmm.GaussianHMM(
+#         n_components=n,
+#         random_state=seed,
+#         covariance_type="full",
+#         init_params="st",
+#         #algorithm="map"
+#         )
    
-    model.means_ = gmm.means_
-    model.covars__ = gmm.covariances_
+#     model.means_ = gmm.means_
+#     model.covars__ = gmm.covariances_
 
-    return model
-
+#     return model

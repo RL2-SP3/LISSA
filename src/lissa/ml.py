@@ -95,36 +95,20 @@ def StateConversion(distribution: np.ndarray ,n: int) -> dict:
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
 
-def GaussianHiddenMarkovModel(
-        X_train:        pd.Series | pd.DataFrame , 
+def HMMTrainer(
+        X_train:        pd.DataFrame, 
         trainLength:    np.ndarray, 
-        mainSeed:       int, 
-        n:              int,
-        covar_type="full",
-        algorithm="viterbi"
-        ) -> hmm.GaussianHMM:
+        model:          hmm.BaseHMM
+        ):
     
-    '''
-        This function defines a model and reshapes if the input is a pd.Series.
-        It allows the code to be more easier to deal without knowing hmmlearn.
-    '''
-    
-    model = hmm.GaussianHMM(
-        n_components=n,
-        covariance_type=covar_type,
-        random_state=mainSeed,
-        algorithm=algorithm,
-        n_iter = 100,
-        tol=0.01)
-
     reshapedData = X_train.to_numpy()
-    
     if type(X_train) == pd.Series:
         reshapedData = reshapedData.reshape(-1,1)
-        
+
     model.fit(reshapedData,trainLength)
-    
+
     return model
+
 
 
 def PostProcessing(
@@ -189,15 +173,39 @@ def GaussianMixtureFit(
 '''
     These functions might be deprecated:
 '''
-# def HMMTrainer(X_train, trainLength, model):
+
+
+# def GaussianHiddenMarkovModel(
+#         X_train:        pd.Series | pd.DataFrame , 
+#         trainLength:    np.ndarray, 
+#         mainSeed:       int, 
+#         n:              int,
+#         covar_type="full",
+#         algorithm="viterbi"
+#         ) -> hmm.GaussianHMM:
+    
+#     '''
+#         This function defines a model and reshapes if the input is a pd.Series.
+#         It allows the code to be more easier to deal without knowing hmmlearn.
+#     '''
+    
+#     model = hmm.GaussianHMM(
+#         n_components=n,
+#         covariance_type=covar_type,
+#         random_state=mainSeed,
+#         algorithm=algorithm,
+#         n_iter = 100,
+#         tol=0.01)
+
+#     reshapedData = X_train.to_numpy()
+    
 #     if type(X_train) == pd.Series:
-#         reshapedData = X_train.to_numpy().reshape(-1,1)
-#     else:
-#         reshapedData = X_train.to_numpy()
-
+#         reshapedData = reshapedData.reshape(-1,1)
+        
 #     model.fit(reshapedData,trainLength)
-
+    
 #     return model
+
 
 # def StandardMarkovModel(n,seed, gmm):
 #     model = hmm.GaussianHMM(

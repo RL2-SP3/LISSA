@@ -13,7 +13,7 @@ from math import ceil, sqrt
 
 from scipy.stats import norm
 
-def Traducao(Header):
+def Traducao(Header, english=False):
     dicionario =  {
     'VSD power frequency': "Frequência do AVV",
     'ESP motor temperature': "Temperatura do motor da ESP",
@@ -37,6 +37,38 @@ def Traducao(Header):
     'Current Mean': "Média da corrente",
     "":"",
     "ESP Vibration Module":"Módulo da Vibração na ESP"
+    }
+
+    if Header in list(dicionario) and english == False:
+        return dicionario[Header]
+    else:
+        return Header
+    
+
+def Measures(Header):
+    dicionario =  {
+    'VSD power frequency': "Hz",
+    'ESP motor temperature': "ºC",
+    'ESP intake Pressure':"Bar",
+    'Water Cut @ 20degC - 1 atm':"%",
+    'ESP intake temperature':"ºC", 
+    'ESP discharge pressure':"Bar", 
+    'Choke Opening':"%",
+    'Well head pressure':"Bar",#
+    'Well head Temperature' : "ºC",
+    'Well aligned to Train A': "bool",
+    'Well aligned to Train B': "bool",
+    'ESP Motor Voltage': "V",
+    'ESP Vibration X': "g",
+    'ESP Vibration Y': "g",
+    'Well Run': "str",
+    'Well_down': "str",
+    'Pump Info': "str",
+    'Failure Info': "str",
+    'Failure': "bool",
+    'Current Mean': "A",
+    "":"",
+    "ESP Vibration Module":"g"
     }
 
     if Header in list(dicionario):
@@ -80,11 +112,9 @@ def FigureComponents(
         for j in range(PCAt.shape[1]):
             plt.text(j, i, f'{PCAt[i, j]:.2f}', ha='center', va='center', color='black',fontsize=10)
 
-    if english:
-        plt.yticks(ticks=range(0,len(Headers)),labels=Headers)
-    else:
-        newHeaders = [Traducao(item) for item in Headers]
-        plt.yticks(ticks=range(0,len(Headers)),labels=newHeaders)
+    
+    plt.yticks(ticks=range(0,len(Headers)),labels=[Traducao(item,english) for item in Headers])
+    
     
     plt.title(listOfNames[0],fontsize=16)
     plt.colorbar(label=listOfNames[1])
@@ -135,33 +165,47 @@ def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFon
 
     return fig,axs
 
-def PCAComponentsPlot(pumpData,pump,PCAHeaders):
 
-    fig, axs = plt.subplots(3,1, figsize=(40,17))
+def PumpPlot(pumpData,Headers,axs,titleS="",english=False):
+    pumpData[Headers].plot(ax=axs)
+    if titleS == "":
+        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
+    else:
+        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=10, title=titleS)
 
-    pumpData[PCAHeaders].plot(ax=axs[0])
-    axs[0].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
+
+    if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
+        axs.axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
 
 
+def TimeSeriesColored(pumpData,Headers,fig,axs):
+    its = axs.pcolor(pumpData[Headers].T,cmap='hsv', norm=norm)
 
+    axs.grid(axis="y",linewidth=0.5,color="black")
     norm = mcolors.Normalize(vmin=-6, vmax=6)
 
-    its = axs[1].pcolor(pumpData[PCAHeaders].T,cmap='hsv', norm=norm)
-
-    axs[1].grid(axis="y",linewidth=0.5,color="black")
-
-    pumpData[PCAHeaders].pow(2).sum(axis=1).pow(1/2).plot(ax=axs[2])
-
+    fig.colorbar(its,ax=axs,orientation='horizontal',shrink=0.5)
     if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
         failureX = pumpData.index.get_loc(pumpData.loc[pumpData["Failure"]==True].index[0])
         
-        axs[1].axvline(x=failureX, color='red', linestyle='--', linewidth=2)
-        axs[0].axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
-        axs[2].axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
+        axs.axvline(x=failureX, color='red', linestyle='--', linewidth=2)
 
 
-    fig.colorbar(its,ax=axs[1],orientation='horizontal',shrink=0.5)
+def TimeSeriesL2(pumpData,Headers,axs):
+    pumpData[Headers].pow(2).sum(axis=1).pow(1/2).plot(ax=axs)
 
+    if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
+        axs.axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
+
+
+def PCAComponentsPlot(pumpData,pump,Headers):
+
+    fig, axs = plt.subplots(3,1, figsize=(40,17))
+
+    PumpPlot(pumpData,Headers,axs[0])
+    TimeSeriesColored(pumpData,Headers,fig,axs[1])
+    TimeSeriesL2(pumpData,Headers,axs[2])
+    
     fig.suptitle("PCA Data of " + pump,fontsize=20);
     
     return fig,axs
@@ -176,35 +220,31 @@ def OverFill(pumpData,Headers,State,n,ax):
             ax.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
 
 
-def HMMPicture(pumpData,pump, props,states, numberOfStates, measures, figsize=(60,30),posLeg = 0.5):
+def PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=False):
+    
+    PumpPlot(pumpData,Headers,axs,english)
+    
+    OverFill(pumpData,Headers,states,numberOfStates,axs)
+
+    axs.tick_params(axis='both',which="both", labelsize="20")
+    axs.set_xlabel("time",fontsize=20)
+    axs.set_ylabel(measures,fontsize=20)
+    
+    
+    
+
+def HMMPicture(pumpData,pump, Headers,states, numberOfStates, measures, figsize=(60,30),posLeg = 0.5):
 
     pumpData["time"] = pd.to_datetime(pumpData["time"])
     pumpData.set_index("time",inplace=True)
     pumpData = pumpData.asfreq('h',fill_value=0)
+    
+    fig, axs = plt.subplots(1,1, figsize=figsize,sharex=True)
 
-
-    n_g = len(props)    
-    fig, axs = plt.subplots(n_g,1, figsize=figsize,sharex=True)
-
-    if n_g == 1:
-        pumpData[props[0]].plot(ax=axs)
-        OverFill(pumpData,props[0],states[0],numberOfStates[0],axs)
-        axs.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
-        axs.tick_params(axis='both',which="both", labelsize="20")
-        axs.set_xlabel("time",fontsize=20)
-        axs.set_ylabel(measures,fontsize=20)
-        if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
-            axs.axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
-    else:
-        for i in range(0,n_g):
-            pumpData[props[i]].plot(ax=axs[i])
-            OverFill(pumpData,props[i],states[i],numberOfStates[i],axs[i])
-            axs[i].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
-            axs[i].tick_params(axis='both',which="both", labelsize="20")
-            axs[i].set_xlabel("time",fontsize=20)
-            axs[i].set_ylabel(measures[i],fontsize=20)
-            if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
-                axs[i].axvline(x=pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+    PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=False)
+    
+    # for i in range(0,n_g):
+    #     pass
         
     fig.suptitle("HMM: " + pump,fontsize=25);
     #plt.figtext(0.5, posLeg + 0.02, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
@@ -254,35 +294,26 @@ def GaussianMixturePlot(data,gmm,strings,figsize=(7,5)):
 def ComparisionPlot(originalData,newData,title,newHeaders,originalHeaders,
                     factor = 0.5, 
                     english=True,
-                    failureShow = True,
                     figsizeT=(20,10),
                     padF=1.08):
 
-    plt.rcParams['font.size'] = 15.0
     fig, axs = plt.subplots(2,1, figsize=figsizeT,sharex=True)
 
-    newData[newHeaders].plot(ax=axs[1])
-    originalData[originalHeaders].plot(ax=axs[0])
-
-
-
-
-    if (newData.loc[newData["Failure"]==True].shape[0] != 0) & failureShow:       
-        axs[0].axvline(newData.loc[newData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
-        axs[1].axvline(newData.loc[newData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+       
     
     fig.suptitle(title,fontsize=20);
 
     if not english:
-        axs[0].legend([Traducao(item) for item in originalHeaders],loc='upper left',bbox_to_anchor=(1, 1),fontsize=10, title="Dados Padronizados")
-        axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10,title="Dados Transformados")
+        PumpPlot(originalData,originalHeaders,axs[0],"Dados Padronizados")
+        PumpPlot(newData,newHeaders,axs[1],"Dados Transformados")
     else:
-        axs[0].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10,title="Standardized Data")
-        axs[1].legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=10,title="Transformed Data")
-    
+        PumpPlot(originalData,originalHeaders,axs[0],"Standardized Data")
+        PumpPlot(newData,newHeaders,axs[1],"Transformed Data")    
     
     
     plt.tight_layout(pad=padF)
+
+    plt.rcParams['font.size'] = 15.0
     plt.rcParams.update({
         'font.size': plt.rcParams['font.size'] * factor,
     })
@@ -294,14 +325,9 @@ def ZScorePlot(totalData,pump,Headers,english = True):
     pumpData =  totalData.loc[totalData["Well Run"]==pump]
 
     fig, axs = plt.subplots(1,1,figsize=(20,7))
-    pumpData[Headers].plot(ax=axs)
-
-    if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
-        axs.axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=5)
+    PumpPlot(pumpData,Headers,axs)
     
-
     if not english:
-        axs.legend([Traducao(item) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
         axs.set_xlabel("Tempo")
         fig.suptitle("Gráfico do Z-score " + pump,fontsize=20);
     else:
@@ -310,7 +336,33 @@ def ZScorePlot(totalData,pump,Headers,english = True):
         
     return fig,axs
 
+def Histogram(data,title,binsN=50,figsizeT=(20,18),english=False):
+    axes = data.hist(bins=binsN,figsize=figsizeT)
 
+    i = 0
+
+    if english:
+        xlabel_ = "Values"
+        ylabel_ = "Count"
+    else:
+        xlabel_ = "Valores"
+        ylabel_ = "Contagem"
+
+    for ax in axes.flatten():
+        prop = ax.get_title()
+        ax.set_title(Traducao(prop,english))
+        ax.set_xlabel(xlabel_ + " ["+ Measures(prop) +"]" )  # Define a legenda com o nome da coluna
+        ax.set_ylabel(ylabel_)
+        i += 1
+
+
+    plt.suptitle(title,fontsize=20)
+    plt.tight_layout(pad=1.3)
+
+    #isso não é bom, mas tbm não encontrei outra solução
+    return plt.gcf(), plt.gca()
+
+#GPTed codes
 
 def PlotGMMMarginals(gmm: GaussianMixture, X: np.ndarray, bins=50):
     n_features = X.shape[1]

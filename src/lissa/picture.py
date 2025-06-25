@@ -1,5 +1,7 @@
 import pandas as pd
 from matplotlib import pyplot as plt
+
+from matplotlib import figure, axes
 import numpy as np
 
 import statsmodels.api as sm
@@ -13,7 +15,12 @@ from math import ceil, sqrt
 
 from scipy.stats import norm
 
-def Traducao(Header, english=False):
+def Traducao(
+        Header: list, 
+        english=False):
+    '''
+        If exists, translate a property from english to portuguese.
+    '''
     dicionario =  {
     'VSD power frequency': "Frequência do AVV",
     'ESP motor temperature': "Temperatura do motor da ESP",
@@ -45,7 +52,10 @@ def Traducao(Header, english=False):
         return Header
     
 
-def Measures(Header):
+def Measures(Header:list):
+    '''
+        Links a property to it's measure.
+    '''
     dicionario =  {
     'VSD power frequency': "Hz",
     'ESP motor temperature': "ºC",
@@ -76,41 +86,33 @@ def Measures(Header):
     else:
         return Header
 
-#directed imported from analysis.py
-def CorrGraphGen(corrAnalysis,plotHeaders,pump):
-    dataCorrelation = corrAnalysis[plotHeaders].corr(method='pearson')
-
-    mask = np.triu(np.ones_like(dataCorrelation, dtype=bool)) # Generate a mask for the upper triangle
-    f, ax = plt.subplots(figsize=(11, 9)) # Set up the matplotlib figure
-    cmap = sns.diverging_palette(230, 20, as_cmap=True) # Generate a custom diverging colormap
-    sns.heatmap(dataCorrelation, mask=mask, cmap=cmap, vmax=.3, center=0,
-            square=True, linewidths=.5, cbar_kws={"shrink": .5}) # Draw the heatmap with the mask and correct aspect ratio
-
-   
-
-    #plt.savefig("imagens/comFiltro/correlacoes/corr_"+pump+".png")
-    plt.savefig("imagens/PCAcorr/corr_"+pump+".jpg")
-    plt.close() 
-
-
 
 def FigureComponents(
-        pca, 
-        Headers, 
-        plotName, 
-        listOfNames = ["PCA - Measures and Variance Components", "Correlation","PCA Components", "Original Data Features"],
-        savePath = "../imagens_gerais/",
-        english = True):
+        model       ,   #sklearn.transformation -> but this is not a class
+        Headers     :   list, 
+        plotName    :   str, 
+        listOfNames =   ["PCA - Measures and Variance Components", "Correlation","PCA Components", "Original Data Features"],
+        savePath    =   "../imagens_gerais/",
+        english     =   True
+        ): #-> Tuple[fig, axs]
+    
+    '''
+        Plot the associated matrix from a transformation model. 
 
-    PCAt = pca.components_.T
+        Example:
+
+        X = USV^t -> U is ploted
+    '''
+
+    transposedComponents = model.components_.T
 
     plt.figure(figsize=(10, 5))
 
-    plt.imshow(PCAt, interpolation='nearest',aspect='auto',cmap='bwr')
+    plt.imshow(transposedComponents, interpolation='nearest',aspect='auto',cmap='bwr')
 
-    for i in range(PCAt.shape[0]):
-        for j in range(PCAt.shape[1]):
-            plt.text(j, i, f'{PCAt[i, j]:.2f}', ha='center', va='center', color='black',fontsize=10)
+    for i in range(transposedComponents.shape[0]):
+        for j in range(transposedComponents.shape[1]):
+            plt.text(j, i, f'{transposedComponents[i, j]:.2f}', ha='center', va='center', color='black',fontsize=10)
 
     
     plt.yticks(ticks=range(0,len(Headers)),labels=[Traducao(item,english) for item in Headers])
@@ -127,7 +129,21 @@ def FigureComponents(
 
    
 #realiza os qq plots dos dados e das colunas que forem necessárias 
-def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFontsize=20,ydist=1,generalFontSize=15, distO = norm):
+def QQPlots(
+        data                :   pd.DataFrame | np.ndarray,
+        relevantHeaders     :   list, 
+        title               =   "QQ",
+        lineType            =   "s", 
+        english             =   True,
+        titleFontsize       =   20,
+        ydist               =   1,
+        generalFontSize     =   15, 
+        distO               =   norm
+        ): #-> Tuple[fig, axs]
+
+    '''
+        Generates QQ plot, measuring the desired data distribution relative to another distribution, with gaussian as default.
+    '''
 
     plt.rcParams["font.size"]=generalFontSize
     n = len(relevantHeaders)
@@ -166,8 +182,20 @@ def QQPlots(data,relevantHeaders, title="QQ",lineType="s", english=True,titleFon
     return fig,axs
 
 
-def PumpPlot(pumpData,Headers,axs,titleS="",english=False):
+def PumpPlot(
+        pumpData    :   pd.DataFrame,
+        Headers     :   list,
+        axs         :   axes.Axes,
+        titleS      =   "",
+        english     =   False
+        ):
+    
+    '''
+        Given a pump data, returns the plot of properties listed in Headers.
+    '''
+
     pumpData[Headers].plot(ax=axs)
+
     if titleS == "":
         axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
     else:
@@ -178,7 +206,17 @@ def PumpPlot(pumpData,Headers,axs,titleS="",english=False):
         axs.axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
 
 
-def TimeSeriesColored(pumpData,Headers,fig,axs):
+def TimeSeriesColored(
+        pumpData    :   pd.DataFrame,
+        Headers     :   list,
+        fig         :   figure.Figure,
+        axs         :   axes.Axes
+        ):
+    
+    '''
+        Given a pump data, returns the color map of properties listed in Headers.
+    '''
+
     its = axs.pcolor(pumpData[Headers].T,cmap='hsv', norm=norm)
 
     axs.grid(axis="y",linewidth=0.5,color="black")
@@ -191,28 +229,35 @@ def TimeSeriesColored(pumpData,Headers,fig,axs):
         axs.axvline(x=failureX, color='red', linestyle='--', linewidth=2)
 
 
-def TimeSeriesL2(pumpData,Headers,axs):
+def TimeSeriesL2(
+        pumpData    : pd.DataFrame,
+        Headers     : list,
+        axs         : axes.Axes
+        ):
+    '''
+        Given a pump data, returns the L2 Norm of properties listed in Headers.
+    '''
+
     pumpData[Headers].pow(2).sum(axis=1).pow(1/2).plot(ax=axs)
 
     if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
         axs.axvline(pumpData.loc[pumpData["Failure"]==True].index[0], color='red', linestyle='--', linewidth=2)
 
 
-def PCAComponentsPlot(pumpData,pump,Headers):
-
-    fig, axs = plt.subplots(3,1, figsize=(40,17))
-
-    PumpPlot(pumpData,Headers,axs[0])
-    TimeSeriesColored(pumpData,Headers,fig,axs[1])
-    TimeSeriesL2(pumpData,Headers,axs[2])
+def OverFill(
+        pumpData        : pd.DataFrame,
+        Headers         : list,
+        State           : str,
+        n               : int,
+        ax              : axes.Axes,
+        chosenPallete   = 'Oranges'
+        ):
     
-    fig.suptitle("PCA Data of " + pump,fontsize=20);
-    
-    return fig,axs
+    '''
+        Fills the time-series with an transparent mask of each color representing one state. 
+    '''
 
-
-def OverFill(pumpData,Headers,State,n,ax):
-    cmap = plt.get_cmap('Oranges', n+1)
+    cmap = plt.get_cmap(chosenPallete, n+1)
     for state in range(0,n+1):
             color = cmap(state)  # Pega uma cor automática para cada estado
             ax.fill_between(pumpData.index,np.min(pumpData[Headers]), np.max(pumpData[Headers]), where=(pumpData[State] == state), 
@@ -220,7 +265,18 @@ def OverFill(pumpData,Headers,State,n,ax):
             ax.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
 
 
-def PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=False):
+def PlotHMMSeries(
+        pumpData        : pd.DataFrame,
+        axs             : axes.Axes,
+        Headers         : list,
+        states          : str,
+        numberOfStates  : int,
+        measures        : str,
+        english=False):
+    
+    '''
+        Plot the time series of chosen headers and fill with the respective state colors.
+    '''
     
     PumpPlot(pumpData,Headers,axs,english)
     
@@ -229,33 +285,20 @@ def PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=Fa
     axs.tick_params(axis='both',which="both", labelsize="20")
     axs.set_xlabel("time",fontsize=20)
     axs.set_ylabel(measures,fontsize=20)
-    
-    
-    
-
-def HMMPicture(pumpData,pump, Headers,states, numberOfStates, measures, figsize=(60,30),posLeg = 0.5):
-
-    pumpData["time"] = pd.to_datetime(pumpData["time"])
-    pumpData.set_index("time",inplace=True)
-    pumpData = pumpData.asfreq('h',fill_value=0)
-    
-    fig, axs = plt.subplots(1,1, figsize=figsize,sharex=True)
-
-    PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=False)
-    
-    # for i in range(0,n_g):
-    #     pass
         
-    fig.suptitle("HMM: " + pump,fontsize=25);
-    #plt.figtext(0.5, posLeg + 0.02, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
-    #plt.figtext(0.5, posLeg, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
+    
 
-
-    plt.tight_layout()
-    return fig,axs
-
-
-def GaussianMixturePlot(data,gmm,strings,figsize=(7,5)):
+def GaussianMixturePlot(
+        data    :   np.ndarray,
+        gmm     :   GaussianMixture,
+        strings :   list,
+        figsize =   (7,5),
+        path    =   "../imagens_gerais/"
+        ):
+    
+    '''
+        Generates the Gaussian Mixture Model plot on provided data.
+    '''
     model = gmm
     means = model.means_.flatten()
     stds = np.sqrt(model.covariances_).flatten()
@@ -282,14 +325,52 @@ def GaussianMixturePlot(data,gmm,strings,figsize=(7,5)):
     plt.title(strings[2])
     plt.xlabel(strings[3])
     plt.ylabel(strings[4])
-    path = "../imagens_gerais/gmm_"+data.name+".jpg"
-    plt.savefig(path)
+    plt.savefig(path + "gmm_"+data.name+".jpg")
     plt.show()
 
 
     return gmm, fig
 
+def Histogram(
+        data        :   pd.DataFrame,
+        title       :   str,
+        binsN       =   50,
+        figsizeT    =   (20,18),
+        english     =   False
+        ):
+    '''
+        Plots the histogram of provided data. It uses hist as base, but it adapted to translation
+    '''
 
+
+    axes = data.hist(bins=binsN,figsize=figsizeT)
+
+    i = 0
+
+    if english:
+        xlabel_ = "Values"
+        ylabel_ = "Count"
+    else:
+        xlabel_ = "Valores"
+        ylabel_ = "Contagem"
+
+    for ax in axes.flatten():
+        prop = ax.get_title()
+        ax.set_title(Traducao(prop,english))
+        ax.set_xlabel(xlabel_ + " ["+ Measures(prop) +"]" )  # Define a legenda com o nome da coluna
+        ax.set_ylabel(ylabel_)
+        i += 1
+
+
+    plt.suptitle(title,fontsize=20)
+    plt.tight_layout(pad=1.3)
+
+    #isso não é bom, mas tbm não encontrei outra solução
+    return plt.gcf(), plt.gca()
+
+
+
+# Functions in the scope of the thesis - you might not want to use them:
 
 def ComparisionPlot(originalData,newData,title,newHeaders,originalHeaders,
                     factor = 0.5, 
@@ -336,33 +417,49 @@ def ZScorePlot(totalData,pump,Headers,english = True):
         
     return fig,axs
 
-def Histogram(data,title,binsN=50,figsizeT=(20,18),english=False):
-    axes = data.hist(bins=binsN,figsize=figsizeT)
+#this function is deprecated, but maintained, since there is some notebook that might use it.
+def PCAComponentsPlot(pumpData,pump,Headers):
 
-    i = 0
+    fig, axs = plt.subplots(3,1, figsize=(40,17))
 
-    if english:
-        xlabel_ = "Values"
-        ylabel_ = "Count"
-    else:
-        xlabel_ = "Valores"
-        ylabel_ = "Contagem"
+    PumpPlot(pumpData,Headers,axs[0])
+    TimeSeriesColored(pumpData,Headers,fig,axs[1])
+    TimeSeriesL2(pumpData,Headers,axs[2])
+    
+    fig.suptitle("PCA Data of " + pump,fontsize=20);
+    
+    return fig,axs
 
-    for ax in axes.flatten():
-        prop = ax.get_title()
-        ax.set_title(Traducao(prop,english))
-        ax.set_xlabel(xlabel_ + " ["+ Measures(prop) +"]" )  # Define a legenda com o nome da coluna
-        ax.set_ylabel(ylabel_)
-        i += 1
+def HMMPicture(
+        pumpData,
+        pump,
+        Headers,
+        states, 
+        numberOfStates,
+        measures, 
+        figsize=(60,30),
+        posLeg = 0.5
+        ):
+
+    fig, axs = plt.subplots(1,1, figsize=figsize,sharex=True)
+
+    PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=False)
+    
+    # for i in range(0,n_g):
+    #     pass
+        
+    fig.suptitle("HMM: " + pump,fontsize=25);
+    #plt.figtext(0.5, posLeg + 0.02, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
+    #plt.figtext(0.5, posLeg, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
 
 
-    plt.suptitle(title,fontsize=20)
-    plt.tight_layout(pad=1.3)
+    plt.tight_layout()
+    return fig,axs
 
-    #isso não é bom, mas tbm não encontrei outra solução
-    return plt.gcf(), plt.gca()
 
-#GPTed codes
+
+
+#GPTed codes - they might be useful, but were not used:
 
 def PlotGMMMarginals(gmm: GaussianMixture, X: np.ndarray, bins=50):
     n_features = X.shape[1]
@@ -442,3 +539,19 @@ def PlotHMMProbs(data,model):
     # Exibir o gráfico
     plt.show()
 
+
+#directed imported from analysis.py
+def CorrGraphGen(corrAnalysis,plotHeaders,pump):
+    dataCorrelation = corrAnalysis[plotHeaders].corr(method='pearson')
+
+    mask = np.triu(np.ones_like(dataCorrelation, dtype=bool)) # Generate a mask for the upper triangle
+    f, ax = plt.subplots(figsize=(11, 9)) # Set up the matplotlib figure
+    cmap = sns.diverging_palette(230, 20, as_cmap=True) # Generate a custom diverging colormap
+    sns.heatmap(dataCorrelation, mask=mask, cmap=cmap, vmax=.3, center=0,
+            square=True, linewidths=.5, cbar_kws={"shrink": .5}) # Draw the heatmap with the mask and correct aspect ratio
+
+   
+
+    #plt.savefig("imagens/comFiltro/correlacoes/corr_"+pump+".png")
+    plt.savefig("imagens/PCAcorr/corr_"+pump+".jpg")
+    plt.close() 

@@ -38,7 +38,11 @@ def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarra
     return exportData.infer_objects(), modelPlay.astype(int)
 
 
-def Splitter(pumpList: np.ndarray | list, proportion: float , entireData: pd.DataFrame) -> Tuple[pd.DataFrame, np.ndarray,pd.DataFrame, np.ndarray, pd.DataFrame, np.ndarray]:
+def Splitter(
+        pumpList: np.ndarray | list, 
+        proportion: float , 
+        entireData: pd.DataFrame
+        ) -> Tuple[pd.DataFrame, np.ndarray,pd.DataFrame, np.ndarray, pd.DataFrame, np.ndarray]:
     '''
         Splits the dataset considering a fraction of pumps (and not a fraction of data). The pumps are chosen randomly.
     '''
@@ -136,10 +140,23 @@ def PostProcessing(
     if verbose:
         print("AIC: " + str(model.aic(totalReshaped))+ " BIC: " + str(model.bic(totalReshaped)))
     
-    originalData[outputHeader] = 0
-    originalData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
+    
+    if originalData.index.unique().shape[0] == originalData.index.shape[0]:
+        originalData[outputHeader] = 0
+        originalData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
+        return originalData
+    else:
+        originalData_ = originalData.reset_index()
+        modelData_ = modelData.reset_index()
 
-    return None
+        # Realizar merge com base em chaves que permitem identificar a linha
+        merged = originalData_.merge(
+            modelData_[[originalData.index.name, 'Well Run', outputHeader]],
+            on=[originalData.index.name, 'Well Run'],  # ajuste conforme suas chaves
+            how='left').fillna(0)
+
+        
+        return merged.set_index(originalData.index.names)
 
 
 def GaussianMixtureFit(

@@ -29,7 +29,7 @@ def DataPreparer(dirFile: str,fileName: str) -> pd.DataFrame:
     baseData["time"] = pd.to_datetime(baseData["time"])
 
     baseData["Well"] = baseData["Well Run"].str[:4]
-    print("número de bombas: " + str(baseData["Well"] .unique().size) + "\n"+"número de runs: " + str(baseData["Well Run"].unique().size))
+    print("Pumps : #" + str(baseData["Well"] .unique().size) + "\n"+"Runs: #" + str(baseData["Well Run"].unique().size))
 
     dup = baseData[list(set(list(baseData))-{"Well_down","Well Run"})].duplicated()
     baseData.drop(index = baseData[dup].index,columns="Well",inplace=True)

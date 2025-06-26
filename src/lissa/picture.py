@@ -23,6 +23,11 @@ def Traducao(
     '''
     dicionario =  {
     'VSD power frequency': "Frequência do AVV",
+    "ESP motor Current - phase A":"Corrente do motor - Fase A",
+    "ESP motor Current - phase B":"Corrente do motor - Fase B",
+    "ESP motor Current - phase C":"Corrente do motor - Fase C",
+    'ESP discharge temperature sensor':'Sensor de temperatura na descarga da ESP',
+    'ESP differential pressure':"Pressão diferencial da ESP",
     'ESP motor temperature': "Temperatura do motor da ESP",
     'ESP intake Pressure':"Pressão na Entrada da ESP",
     'Water Cut @ 20degC - 1 atm':"Fração de água @ ",
@@ -78,6 +83,11 @@ def Measures(Header:list):
     'Failure': "bool",
     'Current Mean': "A",
     "":"",
+    "ESP motor Current - phase A":"A",
+    "ESP motor Current - phase B":"A",
+    "ESP motor Current - phase C":"A",
+    'ESP discharge temperature sensor':'ºC',
+    'ESP differential pressure':"Bar",
     "ESP Vibration Module":"g"
     }
 

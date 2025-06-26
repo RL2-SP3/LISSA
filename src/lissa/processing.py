@@ -6,6 +6,8 @@ import numpy as np
 from typing import Tuple
 #from scipy import stats
 
+from .picture import Traducao, Measures
+
 
 
 from scipy import signal as sig
@@ -291,6 +293,23 @@ def relevantHeader(data: pd.DataFrame) -> np.ndarray:
     return np.sort(list(set(Headers)-set(notNumericalHeaders)))
 
 
+
+def PropertyTableGenerator(
+        tabelaProps : pd.DataFrame,
+        path = "./",
+        name="tabela.csv"):
+    
+    '''
+        Creates a table with translated names and units 
+    '''
+    tabelaProps.reset_index(inplace=True)
+
+    tabelaProps["Unidade"] = tabelaProps["index"].apply(lambda x: Measures(x))
+    tabelaProps["index"]= tabelaProps["index"].apply(lambda x: Traducao(x))
+    tabelaProps.to_csv(path+name)
+
+
+    return tabelaProps
 
 
 

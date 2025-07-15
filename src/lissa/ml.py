@@ -17,7 +17,11 @@ def EntriesPerPump(entireData: pd.DataFrame, pumpList: list, defIndex: np.ndarra
     for pump in pumpList[defIndex]:
         pumpData = entireData.loc[entireData["Well Run"]==pump].copy()
 
-        pumpData["Shutdown"] = (pumpData["Well_down"] != pumpData["Well_down"].shift(1).fillna(pumpData["Well_down"].iloc[-1])) #differentiates well down blocks
+        #pumpData["Shutdown"] = (pumpData["Well_down"] != pumpData["Well_down"].shift(1).fillna(pumpData["Well_down"].iloc[-1])) #differentiates well down blocks
+
+        wellDown = pumpData["Well_down"].to_numpy()
+
+        pumpData["Shutdown"] = (wellDown != np.roll(wellDown,1)) #differentiates well down blocks
 
         pumpData["CumShut"] = pumpData["Shutdown"].cumsum() #group names them
 
@@ -90,12 +94,12 @@ def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.ndarray:
     return power_transform(data[columnName].to_numpy().reshape(-1,1)).reshape(1,-1)[0]
 
 
-def StateConversion(distribution: np.ndarray ,n: int) -> dict:
+def StateConversion(distribution: np.ndarray ,n: int, previous=False) -> dict:
     '''
         The HMM does the state classification randomly, this means that the state 0 not necessarily occurs most. 
         Therefore, this function reorganizes the states, with the higher number meaning the lowest probability state in distribution.
     '''
-    stateOrder = np.argsort(distribution)+1
+    stateOrder = np.argsort(distribution)+(~previous)
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
 
@@ -146,17 +150,22 @@ def PostProcessing(
         originalData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
         return originalData
     else:
-        originalData_ = originalData.reset_index()
-        modelData_ = modelData.reset_index()
+        originalData_ = originalData.reset_index().set_index(["index","Well Run"])
+        modelData_ = modelData.reset_index().set_index(["index","Well Run"])
+
+        originalData_[outputHeader] = 0
+        originalData_.loc[modelData_[outputHeader].index,outputHeader] = modelData_[outputHeader]
+
+        originalData_.reset_index(level="Well Run",inplace=True)
 
         # Realizar merge com base em chaves que permitem identificar a linha
-        merged = originalData_.merge(
-            modelData_[[originalData.index.name, 'Well Run', outputHeader]],
-            on=[originalData.index.name, 'Well Run'],  # ajuste conforme suas chaves
-            how='left').fillna(0)
+        # merged = originalData_.merge(
+        #     modelData_[[originalData.index.name, 'Well Run', outputHeader]],
+        #     on=[originalData.index.name, 'Well Run'],  # ajuste conforme suas chaves
+        #     how='left').fillna(0)
 
         
-        return merged.set_index(originalData.index.names)
+        return originalData_
 
 
 def GaussianMixtureFit(

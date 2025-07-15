@@ -207,9 +207,9 @@ def PumpPlot(
     pumpData[Headers].plot(ax=axs)
 
     if titleS == "":
-        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=15)
+        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
     else:
-        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=10, title=titleS)
+        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=20, title=titleS)
 
 
     if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
@@ -260,7 +260,8 @@ def OverFill(
         State           : str,
         n               : int,
         ax              : axes.Axes,
-        chosenPallete   = 'Oranges'
+        chosenPallete   = 'Oranges',
+        english=True
         ):
     
     '''
@@ -268,11 +269,18 @@ def OverFill(
     '''
 
     cmap = plt.get_cmap(chosenPallete, n+1)
+    if english:
+        stateLabel = "State"
+    else:
+        stateLabel = "Estado"
     for state in range(0,n+1):
             color = cmap(state)  # Pega uma cor automática para cada estado
+        
+
             ax.fill_between(pumpData.index,np.min(pumpData[Headers]), np.max(pumpData[Headers]), where=(pumpData[State] == state), 
-                            color=color, alpha=0.3, label=f"State {state}")
-            ax.legend(loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+                            color=color, alpha=0.3, label=stateLabel + " " +str(state) )
+            h, l = ax.get_legend_handles_labels()
+            ax.legend(h,[Traducao(item) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
 
 
 def PlotHMMSeries(
@@ -290,7 +298,7 @@ def PlotHMMSeries(
     
     PumpPlot(pumpData,Headers,axs,english)
     
-    OverFill(pumpData,Headers,states,numberOfStates,axs)
+    OverFill(pumpData,Headers,states,numberOfStates,axs,english=english)
 
     axs.tick_params(axis='both',which="both", labelsize="20")
     axs.set_xlabel("time",fontsize=20)
@@ -335,7 +343,7 @@ def GaussianMixturePlot(
     plt.title(strings[2])
     plt.xlabel(strings[3])
     plt.ylabel(strings[4])
-    plt.savefig(path + "gmm_"+data.name+".jpg")
+    plt.savefig(path + "gmm_"+data.name+".jpg",bbox_inches='tight')
     plt.show()
 
 
@@ -388,6 +396,10 @@ def ComparisionPlot(originalData,newData,title,newHeaders,originalHeaders,
                     figsizeT=(20,10),
                     padF=1.08):
 
+    plt.rcParams['font.size'] = 15.0
+    plt.rcParams.update({
+        'font.size': plt.rcParams['font.size'] * factor,
+    })
     fig, axs = plt.subplots(2,1, figsize=figsizeT,sharex=True)
 
        
@@ -404,10 +416,7 @@ def ComparisionPlot(originalData,newData,title,newHeaders,originalHeaders,
     
     plt.tight_layout(pad=padF)
 
-    plt.rcParams['font.size'] = 15.0
-    plt.rcParams.update({
-        'font.size': plt.rcParams['font.size'] * factor,
-    })
+    
     
     return fig,axs
 
@@ -448,12 +457,13 @@ def HMMPicture(
         numberOfStates,
         measures, 
         figsize=(60,30),
-        posLeg = 0.5
+        posLeg = 0.5,
+        english=True
         ):
 
     fig, axs = plt.subplots(1,1, figsize=figsize,sharex=True)
 
-    PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=False)
+    PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=english)
     
     # for i in range(0,n_g):
     #     pass
@@ -514,7 +524,7 @@ def PlotGMMMarginals(gmm: GaussianMixture, X: np.ndarray, bins=50):
 
     plt.tight_layout()
     plt.show()
-    fig.savefig("../imagens_gerais/multiple_gmm.jpeg")
+    fig.savefig("../imagens_gerais/multiple_gmm.jpeg",bbox_inches='tight')
 
 
 
@@ -563,5 +573,5 @@ def CorrGraphGen(corrAnalysis,plotHeaders,pump):
    
 
     #plt.savefig("imagens/comFiltro/correlacoes/corr_"+pump+".png")
-    plt.savefig("imagens/PCAcorr/corr_"+pump+".jpg")
+    plt.savefig("imagens/PCAcorr/corr_"+pump+".jpg",bbox_inches='tight')
     plt.close() 

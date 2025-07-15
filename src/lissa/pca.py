@@ -67,9 +67,9 @@ def ExportPCAData(
 
     ]
 
-
-    PCAData = pd.concat([PCAData,entireData[notNumericalHeaders+inputHeaders+vibrationHeaders]],axis=1)
     PCAData["Radius"] = PCAData.pow(2).sum(axis=1).pow(1/2)
+    PCAData = pd.concat([PCAData,entireData[notNumericalHeaders+inputHeaders+vibrationHeaders]],axis=1)
+    
     
     if export:
         PCAData.to_csv(path,index=True)

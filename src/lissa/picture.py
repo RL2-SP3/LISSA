@@ -310,6 +310,7 @@ def GaussianMixturePlot(
         data    :   np.ndarray,
         gmm     :   GaussianMixture,
         strings :   list,
+        limits  =   (0,17),
         figsize =   (7,5),
         path    =   "../imagens_gerais/"
         ):
@@ -323,13 +324,13 @@ def GaussianMixturePlot(
     weights = model.weights_
 
     # Criando um range de valores para plotar as distribuições
-    x = np.linspace(0, np.max(data), 1000)
+    x = np.linspace(limits[0], np.max(data), 1000)
 
 
     fig = plt.figure(figsize=figsize)
     # Plotando histograma dos dados originais
     plt.hist(data, bins=100, density=True, alpha=0.5, label=strings[0])
-    plt.xlim(0,17)
+    plt.xlim(limits[0],limits[1])
 
     # Plotando cada gaussiana individualmente
     for i in range(model.means_.shape[0]):

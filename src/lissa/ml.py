@@ -94,12 +94,12 @@ def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.ndarray:
     return power_transform(data[columnName].to_numpy().reshape(-1,1)).reshape(1,-1)[0]
 
 
-def StateConversion(distribution: np.ndarray ,n: int, previous=False) -> dict:
+def StateConversion(distribution: np.ndarray ,n: int) -> dict:
     '''
         The HMM does the state classification randomly, this means that the state 0 not necessarily occurs most. 
         Therefore, this function reorganizes the states, with the higher number meaning the lowest probability state in distribution.
     '''
-    stateOrder = np.argsort(distribution)+(~previous)
+    stateOrder = np.argsort(distribution)+1
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
 
@@ -139,33 +139,45 @@ def PostProcessing(
     if type(modelData[inputHeader])==pd.Series:
         totalReshaped = totalReshaped.reshape(-1,1)
 
-    modelData[outputHeader] = model.predict(totalReshaped,totalLength)+1;
+    
+    originalData.set_index(keys="Well Run",append=True,inplace=True)
+    modelData.set_index(keys="Well Run",append=True,inplace=True)
+
+    originalData[outputHeader] = 0
+    originalData.loc[modelData.index,outputHeader] =  model.predict(totalReshaped,totalLength)+1;
+
+    originalData.reset_index(level="Well Run",inplace=True)
+    modelData.reset_index(level="Well Run",inplace=True)
 
     if verbose:
         print("AIC: " + str(model.aic(totalReshaped))+ " BIC: " + str(model.bic(totalReshaped)))
+
+    return originalData,modelData
     
+
+   
+    # if originalData.index.unique().shape[0] == originalData.index.shape[0]:
+    #     originalData[outputHeader] = 0
+    #     originalData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
+    #     return originalData
     
-    if originalData.index.unique().shape[0] == originalData.index.shape[0]:
-        originalData[outputHeader] = 0
-        originalData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
-        return originalData
-    else:
-        originalData_ = originalData.reset_index().set_index(["index","Well Run"])
-        modelData_ = modelData.reset_index().set_index(["index","Well Run"])
+    # else:
+    #     originalData_ = originalData.reset_index().set_index(["index","Well Run"])
+    #     modelData_ = modelData.reset_index().set_index(["index","Well Run"])
 
-        originalData_[outputHeader] = 0
-        originalData_.loc[modelData_[outputHeader].index,outputHeader] = modelData_[outputHeader]
+    #     originalData_[outputHeader] = 0
+    #     originalData_.loc[modelData_[outputHeader].index,outputHeader] = modelData_[outputHeader]
 
-        originalData_.reset_index(level="Well Run",inplace=True)
+    #     originalData_.reset_index(level="Well Run",inplace=True)
 
-        # Realizar merge com base em chaves que permitem identificar a linha
-        # merged = originalData_.merge(
-        #     modelData_[[originalData.index.name, 'Well Run', outputHeader]],
-        #     on=[originalData.index.name, 'Well Run'],  # ajuste conforme suas chaves
-        #     how='left').fillna(0)
+    #     # Realizar merge com base em chaves que permitem identificar a linha
+    #     # merged = originalData_.merge(
+    #     #     modelData_[[originalData.index.name, 'Well Run', outputHeader]],
+    #     #     on=[originalData.index.name, 'Well Run'],  # ajuste conforme suas chaves
+    #     #     how='left').fillna(0)
 
         
-        return originalData_
+    #     return originalData_
 
 
 def GaussianMixtureFit(

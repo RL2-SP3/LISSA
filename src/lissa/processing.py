@@ -88,7 +88,7 @@ def FeatureCreation(entireData:pd.DataFrame)->pd.DataFrame:
     Users might want to deal with new features. It is not the best pratice, but they should be written here (inside the function).
     
     '''
-    entireData["Current Mean"] = (
+    entireData["ESP Current Module"] = (
     entireData["ESP motor Current - phase A"].pow(2)+
     entireData["ESP motor Current - phase B"].pow(2)+
     entireData["ESP motor Current - phase C"].pow(2)).pow(1/2)
@@ -203,7 +203,7 @@ def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.Da
     'Well head pressure',
     'VSD power frequency',
     'ESP Motor Voltage',
-    'Current Mean',
+    'ESP Current Module',
     'ESP Vibration Module',
     #'ESP Power',
     #"ESP Vibration X",

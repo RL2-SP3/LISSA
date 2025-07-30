@@ -26,29 +26,30 @@ def Traducao(
     "ESP motor Current - phase A":"Corrente do motor - Fase A",
     "ESP motor Current - phase B":"Corrente do motor - Fase B",
     "ESP motor Current - phase C":"Corrente do motor - Fase C",
-    'ESP discharge temperature sensor':'Sensor de temperatura na descarga da ESP',
-    'ESP differential pressure':"Pressão diferencial da ESP",
-    'ESP motor temperature': "Temperatura do motor da ESP",
-    'ESP intake Pressure':"Pressão na Entrada da ESP",
+    'ESP discharge temperature sensor':'Sensor de temperatura na descarga da BCS',
+    'ESP differential pressure':"Pressão diferencial da BCS",
+    'ESP motor temperature': "Temperatura do motor da BCS",
+    'ESP intake Pressure':"Pressão na Entrada da BCS",
     'Water Cut @ 20degC - 1 atm':"Fração de água @ ",
-    'ESP intake temperature':"Temperatura na Entrada da ESP", 
-    'ESP discharge pressure':"Pressão de Descarga da ESP", 
+    'ESP intake temperature':"Temperatura na Entrada da BCS", 
+    'ESP discharge pressure':"Pressão de Descarga da BCS", 
     'Choke Opening':"Abertura da Válvula",
     'Well head pressure':"Pressão na Cabeça do Poço",#
     'Well head Temperature' : "Temperatura na Cabeça do Poço",
     'Well aligned to Train A': "Poço Alinhado a A",
     'Well aligned to Train B': "Poço Alinhado a b",
-    'ESP Motor Voltage': "Tensão do Motor da ESP",
-    'ESP Vibration X': "Vibração da ESP em X",
-    'ESP Vibration Y': "Vibração da ESP em Y",
+    'ESP Motor Voltage': "Tensão do Motor da BCS",
+    'ESP Vibration X': "Vibração da BCS em X",
+    'ESP Vibration Y': "Vibração da BCS em Y",
     'Well Run': "Corrida do Poço",
     'Well_down': "Poço desativado",
     'Pump Info': "Informação da bomba",
     'Failure Info': "Informação da Falha",
     'Failure': "Falha",
     'Current Mean': "Média da corrente",
+    'ESP Current Module': "Módulo da Corrente na BCS",
     "":"",
-    "ESP Vibration Module":"Módulo da Vibração na ESP"
+    "ESP Vibration Module":"Módulo da Vibração na BCS"
     }
 
     if Header in list(dicionario) and english == False:
@@ -148,7 +149,8 @@ def QQPlots(
         titleFontsize       =   20,
         ydist               =   1,
         generalFontSize     =   15, 
-        distO               =   norm
+        distO               =   norm,
+        figSizeSt           =   (40,15)
         ): #-> Tuple[fig, axs]
 
     '''
@@ -160,7 +162,7 @@ def QQPlots(
     if not (n % 2):
         n = len(relevantHeaders) + 1
     
-    fig, axs = plt.subplots(2,int(n/2),figsize=(40,15))    
+    fig, axs = plt.subplots(2,int(n/2),figsize=figSizeSt)    
     
     # n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
     # fig, axs = plt.subplots(n,n,figsize=(20,20))
@@ -197,7 +199,8 @@ def PumpPlot(
         Headers     :   list,
         axs         :   axes.Axes,
         titleS      =   "",
-        english     =   False
+        english     =   False,
+        legendTextSize = 20
         ):
     
     '''
@@ -207,9 +210,9 @@ def PumpPlot(
     pumpData[Headers].plot(ax=axs)
 
     if titleS == "":
-        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=legendTextSize)
     else:
-        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=20, title=titleS)
+        axs.legend([Traducao(item,english) for item in Headers],loc='upper left',bbox_to_anchor=(1, 1),fontsize=legendTextSize, title=titleS)
 
 
     if pumpData.loc[pumpData["Failure"]==True].shape[0] != 0:
@@ -391,28 +394,26 @@ def Histogram(
 
 # Functions in the scope of the thesis - you might not want to use them:
 
-def ComparisionPlot(originalData,newData,title,newHeaders,originalHeaders,
-                    factor = 0.5, 
+def ComparisionPlot(originalData,newData,title,newHeaders,originalHeaders, 
                     english=True,
                     figsizeT=(20,10),
-                    padF=1.08):
+                    padF=1.08,
+                    generalFontSize = 15):
 
-    plt.rcParams['font.size'] = 15.0
-    plt.rcParams.update({
-        'font.size': plt.rcParams['font.size'] * factor,
-    })
+    plt.rcParams['font.size'] = generalFontSize
+    plt.rcParams.update({'font.size': plt.rcParams['font.size']})
     fig, axs = plt.subplots(2,1, figsize=figsizeT,sharex=True)
 
        
     
-    fig.suptitle(title,fontsize=20);
+    fig.suptitle(title,fontsize=generalFontSize*1.5);
 
     if not english:
-        PumpPlot(originalData,originalHeaders,axs[0],"Dados Padronizados")
-        PumpPlot(newData,newHeaders,axs[1],"Dados Transformados")
+        PumpPlot(originalData,originalHeaders,axs[0],"Dados Padronizados",legendTextSize=generalFontSize)
+        PumpPlot(newData,newHeaders,axs[1],"Dados Transformados",legendTextSize=generalFontSize)
     else:
-        PumpPlot(originalData,originalHeaders,axs[0],"Standardized Data")
-        PumpPlot(newData,newHeaders,axs[1],"Transformed Data")    
+        PumpPlot(originalData,originalHeaders,axs[0],"Standardized Data",legendTextSize=generalFontSize)
+        PumpPlot(newData,newHeaders,axs[1],"Transformed Data",legendTextSize=generalFontSize)    
     
     
     plt.tight_layout(pad=padF)

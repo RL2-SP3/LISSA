@@ -150,7 +150,8 @@ def QQPlots(
         ydist               =   1,
         generalFontSize     =   15, 
         distO               =   norm,
-        figSizeSt           =   (40,15)
+        figSizeSt           =   (40,15),
+        
         ): #-> Tuple[fig, axs]
 
     '''
@@ -162,7 +163,7 @@ def QQPlots(
     if not (n % 2):
         n = len(relevantHeaders) + 1
     
-    fig, axs = plt.subplots(2,int(n/2),figsize=figSizeSt)    
+    fig, axs = plt.subplots(int(n/2),2,figsize=figSizeSt)    
     
     # n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
     # fig, axs = plt.subplots(n,n,figsize=(20,20))
@@ -264,6 +265,7 @@ def OverFill(
         n               : int,
         ax              : axes.Axes,
         chosenPallete   = 'Oranges',
+        gnrlFont        = 20,
         english=True
         ):
     
@@ -276,14 +278,21 @@ def OverFill(
         stateLabel = "State"
     else:
         stateLabel = "Estado"
+
     for state in range(0,n+1):
             color = cmap(state)  # Pega uma cor automática para cada estado
         
 
-            ax.fill_between(pumpData.index,np.min(pumpData[Headers]), np.max(pumpData[Headers]), where=(pumpData[State] == state), 
-                            color=color, alpha=0.3, label=stateLabel + " " +str(state) )
+            ax.fill_between(pumpData.index,
+                            np.min(pumpData[Headers]), 
+                            np.max(pumpData[Headers]), 
+                            where=(pumpData[State] == state), 
+                            color=color, 
+                            alpha=0.3, 
+                            label=stateLabel + " " +str(state) 
+                            )
             h, l = ax.get_legend_handles_labels()
-            ax.legend(h,[Traducao(item) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=20)
+            ax.legend(h,[Traducao(item) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=gnrlFont)
 
 
 def PlotHMMSeries(
@@ -293,19 +302,20 @@ def PlotHMMSeries(
         states          : str,
         numberOfStates  : int,
         measures        : str,
+        gnrlFont        = 20,
         english=False):
     
     '''
         Plot the time series of chosen headers and fill with the respective state colors.
     '''
     
-    PumpPlot(pumpData,Headers,axs,english)
+    PumpPlot(pumpData,Headers,axs,english,legendTextSize=gnrlFont)
     
-    OverFill(pumpData,Headers,states,numberOfStates,axs,english=english)
+    OverFill(pumpData,Headers,states,numberOfStates,axs,english=english,gnrlFont=gnrlFont)
 
-    axs.tick_params(axis='both',which="both", labelsize="20")
-    axs.set_xlabel("time",fontsize=20)
-    axs.set_ylabel(measures,fontsize=20)
+    axs.tick_params(axis='both',which="both", labelsize=str(gnrlFont))
+    axs.set_xlabel("time",fontsize=gnrlFont)
+    axs.set_ylabel(measures,fontsize=gnrlFont)
         
     
 
@@ -459,18 +469,20 @@ def HMMPicture(
         numberOfStates,
         measures, 
         figsize=(60,30),
-        posLeg = 0.5,
-        english=True
+        #posLeg = 0.5,
+        english=True,
+        titleFont = 25,
+        gnrlFont = 20
         ):
 
     fig, axs = plt.subplots(1,1, figsize=figsize,sharex=True)
 
-    PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=english)
+    PlotHMMSeries(pumpData,axs,Headers,states,numberOfStates,measures,english=english,gnrlFont=gnrlFont)
     
     # for i in range(0,n_g):
     #     pass
         
-    fig.suptitle("HMM: " + pump,fontsize=25);
+    fig.suptitle("HMM: " + pump,fontsize=titleFont);
     #plt.figtext(0.5, posLeg + 0.02, pumpData["Pump Info"].iloc[0],fontsize=10,va="center",ha="center")
     #plt.figtext(0.5, posLeg, pumpData["Failure Info"].iloc[0],fontsize=10,va="center",ha="center")
 

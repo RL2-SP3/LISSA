@@ -151,6 +151,7 @@ def QQPlots(
         generalFontSize     =   15, 
         distO               =   norm,
         figSizeSt           =   (40,15),
+        layout              =   (2,5)
         
         ): #-> Tuple[fig, axs]
 
@@ -160,10 +161,12 @@ def QQPlots(
 
     plt.rcParams["font.size"]=generalFontSize
     n = len(relevantHeaders)
-    if not (n % 2):
-        n = len(relevantHeaders) + 1
+    # if not (n % 2):
+    #     n = len(relevantHeaders) + 1
+
+
     
-    fig, axs = plt.subplots(int(n/2),2,figsize=figSizeSt)    
+    fig, axs = plt.subplots(layout[0],layout[1],figsize=figSizeSt)    
     
     # n = np.ceil(np.sqrt(len(relevantHeaders))).astype(int)
     # fig, axs = plt.subplots(n,n,figsize=(20,20))
@@ -368,14 +371,15 @@ def Histogram(
         title       :   str,
         binsN       =   50,
         figsizeT    =   (20,18),
-        english     =   False
+        english     =   False,
+        layout      =   (2,5)
         ):
     '''
         Plots the histogram of provided data. It uses hist as base, but it adapted to translation
     '''
 
 
-    axes = data.hist(bins=binsN,figsize=figsizeT)
+    axes = data.hist(bins=binsN,figsize=figsizeT,layout=layout)
 
     i = 0
 

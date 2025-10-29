@@ -212,7 +212,13 @@ def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.Da
 
     Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median())/x.expanding().std())
 
+    
+
     #all things i had tried:
+
+    # Filter = exportData.groupby("Well_down")[Headers].apply(
+    #     lambda x: (1+x.ewm(span=24*windowSize).mean()/1+x.expanding().median()).apply(np.log10)
+    #     )#/x.expanding().std()) #-> this one have interesting results
 
     #Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().min())/(x.expanding().max()-x.expanding().min()))
     

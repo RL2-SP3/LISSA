@@ -104,7 +104,8 @@ def FigureComponents(
         plotName    :   str, 
         listOfNames =   ["PCA - Measures and Variance Components", "Correlation","PCA Components", "Original Data Features"],
         savePath    =   "../imagens_gerais/",
-        english     =   True
+        english     =   True,
+        save_yn     =   True,
         ): #-> Tuple[fig, axs]
     
     '''
@@ -127,13 +128,15 @@ def FigureComponents(
 
     
     plt.yticks(ticks=range(0,len(Headers)),labels=[Traducao(item,english) for item in Headers])
+    plt.xticks(ticks=range(0,len(Headers)),labels=range(0,len(Headers)))
     
     
     plt.title(listOfNames[0],fontsize=16)
     plt.colorbar(label=listOfNames[1])
     plt.xlabel(listOfNames[2],fontsize=13)
     plt.ylabel(listOfNames[3],fontsize=13)
-    plt.savefig(savePath+plotName, bbox_inches='tight')
+    if save_yn:
+        plt.savefig(savePath+plotName, bbox_inches='tight')
     plt.tight_layout()
     return plt.gcf(), plt.gca()
     

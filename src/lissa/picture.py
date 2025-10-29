@@ -106,6 +106,11 @@ def FigureComponents(
         savePath    =   "../imagens_gerais/",
         english     =   True,
         save_yn     =   True,
+        figsize     =   (20,10),
+        textsize    =   10,
+        titlesize   =   16,
+        ticksize    =   10,
+        labelsize    =   10,
         ): #-> Tuple[fig, axs]
     
     '''
@@ -118,23 +123,23 @@ def FigureComponents(
 
     transposedComponents = model.components_.T
 
-    plt.figure(figsize=(10, 5))
+    plt.figure(figsize=figsize)
 
     plt.imshow(transposedComponents, interpolation='nearest',aspect='auto',cmap='bwr')
 
     for i in range(transposedComponents.shape[0]):
         for j in range(transposedComponents.shape[1]):
-            plt.text(j, i, f'{transposedComponents[i, j]:.2f}', ha='center', va='center', color='black',fontsize=10)
+            plt.text(j, i, f'{transposedComponents[i, j]:.2f}', ha='center', va='center', color='black',fontsize=textsize)
 
     
-    plt.yticks(ticks=range(0,len(Headers)),labels=[Traducao(item,english) for item in Headers])
-    plt.xticks(ticks=range(0,len(Headers)),labels=range(0,len(Headers)))
+    plt.yticks(ticks=range(0,len(Headers)),labels=[Traducao(item,english) for item in Headers],fontsize=ticksize)
+    plt.xticks(ticks=range(0,len(Headers)),labels=range(0,len(Headers)),fontsize=ticksize)
     
     
-    plt.title(listOfNames[0],fontsize=16)
+    plt.title(listOfNames[0],fontsize=titlesize)
     plt.colorbar(label=listOfNames[1])
-    plt.xlabel(listOfNames[2],fontsize=13)
-    plt.ylabel(listOfNames[3],fontsize=13)
+    plt.xlabel(listOfNames[2],fontsize=labelsize)
+    plt.ylabel(listOfNames[3],fontsize=labelsize)
     if save_yn:
         plt.savefig(savePath+plotName, bbox_inches='tight')
     plt.tight_layout()

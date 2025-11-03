@@ -187,7 +187,7 @@ def QQPlots(
         for prop in relevantHeaders:
             sm.qqplot(data[prop], line=lineType,ax=axs[i],dist=distO)
             if not english:
-                axs[i].title.set_text(Traducao(prop))
+                axs[i].title.set_text(Traducao(prop,english))
                 axs[i].set_xlabel("Quantil teórico")
                 axs[i].set_ylabel("Quantil da amostra")
             else:
@@ -303,7 +303,7 @@ def OverFill(
                             label=stateLabel + " " +str(state) 
                             )
             h, l = ax.get_legend_handles_labels()
-            ax.legend(h,[Traducao(item) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=gnrlFont)
+            ax.legend(h,[Traducao(item, english) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=gnrlFont)
 
 
 def PlotHMMSeries(
@@ -314,13 +314,13 @@ def PlotHMMSeries(
         numberOfStates  : int,
         measures        : str,
         gnrlFont        = 20,
-        english=False):
+        english         = True):
     
     '''
         Plot the time series of chosen headers and fill with the respective state colors.
     '''
     
-    PumpPlot(pumpData,Headers,axs,english,legendTextSize=gnrlFont)
+    PumpPlot(pumpData,Headers,axs,english=english,legendTextSize=gnrlFont)
     
     OverFill(pumpData,Headers,states,numberOfStates,axs,english=english,gnrlFont=gnrlFont)
 

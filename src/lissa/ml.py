@@ -120,7 +120,7 @@ def HMMTrainer(
 
 
 def PostProcessing(
-        model:          hmm.BaseHMM, 
+        model:          hmm.BaseHMM | GaussianMixture, 
         originalData:   pd.Series | pd.DataFrame, 
         modelData:      pd.Series | pd.DataFrame,
         inputHeader:    str, 

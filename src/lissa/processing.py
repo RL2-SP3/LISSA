@@ -8,9 +8,19 @@ from typing import Tuple
 
 from .picture import Traducao, Measures
 
-
+from pydantic import BaseModel, Field
 
 from scipy import signal as sig
+
+class Equipment(BaseModel):
+    name: str
+    info: str
+    failure_info: str
+    data : pd.DataFrame
+
+
+
+
 
 def DataPreparer(dirFile: str,fileName: str) -> pd.DataFrame:
 
@@ -192,25 +202,20 @@ def FilterProcedure(entireData: pd.DataFrame, pump: str, windowSize: int)->pd.Da
 
     exportData = (entireData.loc[entireData["Well Run"] == pump].copy()) #copies the original dataset
 
-    Headers = [
-    #'ESP discharge temperature sensor',
+    numerical_headers = [
     'ESP intake temperature',
     'ESP motor temperature',
     'Well head Temperature',
     'ESP intake Pressure',
     'ESP discharge pressure',
-    #'ESP differential pressure',
     'Well head pressure',
     'VSD power frequency',
     'ESP Motor Voltage',
     'ESP Current Module',
-    'ESP Vibration Module',
-    #'ESP Power',
-    #"ESP Vibration X",
-    #"ESP Vibration Y"
+    'ESP Vibration Module'
     ]
 
-    Filter = exportData.groupby("Well_down")[Headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median())/x.expanding().std())
+    Filter = exportData.groupby("Well_down")[numerical_headers].apply(lambda x: (x.ewm(span=24*windowSize).mean()-x.expanding().median())/x.expanding().std())
 
     
 

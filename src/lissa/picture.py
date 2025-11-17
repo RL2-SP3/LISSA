@@ -97,6 +97,39 @@ def Measures(Header:list):
     else:
         return Header
 
+class LissaFigure():
+    def __init__(self,**kwargs):
+
+        figure_params = {
+            "save_path"    :   "./",
+            "english"      :   True,
+            "fig_size"     :   (20,10),
+            "text_size"    :   10,
+            "title_size"   :   16,
+            "tick_size"    :   10,
+            "label_size"   :   10
+        }
+
+        self.params = {**kwargs,**figure_params}
+
+        self.figure = plt.figure(figsize=self.params["fig_size"])
+
+
+class MatrixPlot(LissaFigure):
+    def __init__(
+            self,
+            decomposition_model,
+            **kwargs
+            ):
+        
+        self.params = {**self.params, **kwargs}
+        transposed_components = decomposition_model.components_.T
+
+
+
+
+
+
 
 def FigureComponents(
         model       ,   #sklearn.transformation -> but this is not a class

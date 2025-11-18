@@ -15,42 +15,21 @@ from math import ceil, sqrt
 
 from scipy.stats import norm
 
+from pathlib import Path
+
 def Traducao(
         Header: list, 
         english=False):
     '''
         If exists, translate a property from english to portuguese.
     '''
-    dicionario =  {
-    'VSD power frequency': "Frequência do AVV",
-    "ESP motor Current - phase A":"Corrente do motor - Fase A",
-    "ESP motor Current - phase B":"Corrente do motor - Fase B",
-    "ESP motor Current - phase C":"Corrente do motor - Fase C",
-    'ESP discharge temperature sensor':'Sensor de temperatura na descarga da BCS',
-    'ESP differential pressure':"Pressão diferencial da BCS",
-    'ESP motor temperature': "Temperatura do motor da BCS",
-    'ESP intake Pressure':"Pressão na Entrada da BCS",
-    'Water Cut @ 20degC - 1 atm':"Fração de água @ ",
-    'ESP intake temperature':"Temperatura na Entrada da BCS", 
-    'ESP discharge pressure':"Pressão de Descarga da BCS", 
-    'Choke Opening':"Abertura da Válvula",
-    'Well head pressure':"Pressão na Cabeça do Poço",#
-    'Well head Temperature' : "Temperatura na Cabeça do Poço",
-    'Well aligned to Train A': "Poço Alinhado a A",
-    'Well aligned to Train B': "Poço Alinhado a b",
-    'ESP Motor Voltage': "Tensão do Motor da BCS",
-    'ESP Vibration X': "Vibração da BCS em X",
-    'ESP Vibration Y': "Vibração da BCS em Y",
-    'Well Run': "Corrida do Poço",
-    'Well_down': "Poço desativado",
-    'Pump Info': "Informação da bomba",
-    'Failure Info': "Informação da Falha",
-    'Failure': "Falha",
-    'Current Mean': "Média da corrente",
-    'ESP Current Module': "Módulo da Corrente na BCS",
-    "":"",
-    "ESP Vibration Module":"Módulo da Vibração na BCS"
-    }
+
+    dictionaries_dir = Path(__file__).resolve()/"dictionaries"
+        
+    with (dictionaries_dir/"dictionaries.json").open() as dictionary:
+        dict_of_dicts = dictionary.read()
+
+    dicionario = dict_of_dicts["translation_to_portuguese"]
 
     if Header in list(dicionario) and english == False:
         return dicionario[Header]
@@ -62,35 +41,13 @@ def Measures(Header:list):
     '''
         Links a property to it's measure.
     '''
-    dicionario =  {
-    'VSD power frequency': "Hz",
-    'ESP motor temperature': "ºC",
-    'ESP intake Pressure':"Bar",
-    'Water Cut @ 20degC - 1 atm':"%",
-    'ESP intake temperature':"ºC", 
-    'ESP discharge pressure':"Bar", 
-    'Choke Opening':"%",
-    'Well head pressure':"Bar",#
-    'Well head Temperature' : "ºC",
-    'Well aligned to Train A': "bool",
-    'Well aligned to Train B': "bool",
-    'ESP Motor Voltage': "V",
-    'ESP Vibration X': "g",
-    'ESP Vibration Y': "g",
-    'Well Run': "str",
-    'Well_down': "str",
-    'Pump Info': "str",
-    'Failure Info': "str",
-    'Failure': "bool",
-    'Current Mean': "A",
-    "":"",
-    "ESP motor Current - phase A":"A",
-    "ESP motor Current - phase B":"A",
-    "ESP motor Current - phase C":"A",
-    'ESP discharge temperature sensor':'ºC',
-    'ESP differential pressure':"Bar",
-    "ESP Vibration Module":"g"
-    }
+
+    dictionaries_dir = Path(__file__).resolve()/"dictionaries"
+        
+    with (dictionaries_dir/"dictionaries.json").open() as dictionary:
+        dict_of_dicts = dictionary.read()
+
+    dicionario = dict_of_dicts["measurement_units"]
 
     if Header in list(dicionario):
         return dicionario[Header]
@@ -98,11 +55,15 @@ def Measures(Header:list):
         return Header
 
 class LissaFigure():
-    def __init__(self,**kwargs):
+    def __init__(
+            self,
+            properties,
+            **kwargs
+            ):
 
         figure_params = {
             "save_path"    :   "./",
-            "english"      :   True,
+            #"english"      :   True,
             "fig_size"     :   (20,10),
             "text_size"    :   10,
             "title_size"   :   16,
@@ -110,9 +71,64 @@ class LissaFigure():
             "label_size"   :   10
         }
 
-        self.params = {**kwargs,**figure_params}
+        labels_param = {
+            "x_label" : "X Label",
+            "y_label" : "Y Label",
+            "plot_title" : "Title of the Plot",
+            "colorbar_title" : "Colorbar title"
+            }
+        
+        save_param = {
+            "save_figure": False,
+            "dir" : "./",
+            "file_name" : "image"            
+        }
+
+        dict_parameters ={
+            "portuguese_dictionary":"translation_to_portuguese",
+            "units":"measurement_units"
+        }
+
+        self.params = {
+            **figure_params,
+            **labels_param,
+            **save_param,
+            **dict_parameters,
+            **kwargs
+            }
 
         self.figure = plt.figure(figsize=self.params["fig_size"])
+
+        dictionaries_dir = Path(__file__).resolve()/"dictionaries"
+        
+        with (dictionaries_dir/"dictionaries.json").open() as dictionary:
+            self.dict_of_dicts = dictionary.read()
+
+        self.properties = properties
+        self.properties_translated = properties
+
+        #yes: you are almost obligated to know your work units:
+
+        self.measures = {
+            prop:self.dict_of_dicts["units"][prop] 
+            for prop in self.properties 
+            if prop in self.dict_of_dicts["units"]
+            }
+
+
+    def translation(self,dict_name):
+        self.properties_translated = {
+            prop:self.dict_of_dicts[dict_name][prop] 
+            for prop in self.properties 
+            if prop in self.dict_of_dicts[dict_name]
+            }
+        
+    def save_fig(self):
+        if self.params["save_figure"]:
+            plt.savefig(self.params["dir"]+self.params["file_name"], bbox_inches='tight')
+        else:
+            print("This figure was not saved!")
+        
 
 
 class MatrixPlot(LissaFigure):
@@ -123,12 +139,131 @@ class MatrixPlot(LissaFigure):
             ):
         
         self.params = {**self.params, **kwargs}
-        transposed_components = decomposition_model.components_.T
+        self.transposed_components = decomposition_model.components_.T        
+
+    def plot(self):
+
+        ax = self.figure.add_subplot(1,1,1)
+        ax.imshow(self.transposed_components, interpolation='nearest',aspect='auto',cmap='bwr')
+
+        n,m = self.transposed_components.shape
+
+        for i in range(n):
+            for j in range(m):
+                plt.text(j, i, f'{self.transposed_components[i, j]:.2f}', 
+                        ha='center', 
+                        va='center', 
+                        color='black',
+                        fontsize=self.params["text_size"]
+                        )
+    
+        plt.yticks(
+            ticks=range(0,n),
+            labels=[prop for prop in self.properties_translated],
+            fontsize=self.params["tick_size"])
+        
+        plt.xticks(
+            ticks=range(0,len(m)),
+            labels=range(0,len(m)),
+            fontsize=self.params["tick_size"])
+        
+        
+        plt.title(self.params["title"],fontsize=self.params["title_size"])
+
+        plt.colorbar(label=self.params["colorbar_title"])
+
+        plt.xlabel(self.params["x_label"],fontsize=self.params["title_size"])
+        plt.ylabel(self.params["y_label"],fontsize=self.params["title_size"])
+
+        plt.tight_layout()
+
+        return plt.gcf(), plt.gca()
 
 
+'''
+    Generates QQ plot, measuring the desired data distribution relative to another distribution, with gaussian as default.
+'''
+
+class QuantileQuantilePlot(LissaFigure):
+    def __init__(self,
+                 data,
+                 line_type = "s",
+                 layout = (2,5),
+                 y_dist = 1                 
+                 ):
+        
+        self.figure, self.axs = plt.subplots(
+            layout[0],
+            layout[1],
+            figsize=self.params["fig_size"])
+        
+        self.figure.suptitle(
+            self.params["plot_title"],
+            fontsize=self.params["text_size"], 
+            y=y_dist)
+        
+        self.n = len(data.columns)
+
+        self.data = data
+
+        self.line_type = line_type
+        self.dist_to_title_foot = y_dist
+
+    def plot(self):        
+        if self.n > 1:   
+            self.axs = self.axs.ravel()
+            for index,prop in enumerate(self.properties):
+                sm.qqplot(self.data[prop], line=self.line_type,ax=self.axs[index],dist=self.dist_to_title_foot)
+                self.axs[index].title.set_text(self.properties_translated[index])
+                self.axs[index].set_xlabel(self.params["x_label"])
+                self.axs[index].set_ylabel(self.params["y_label"])
+                
+            if (len(self.properties) % 2):
+                self.axs[self.n].remove()
+        else:
+            sm.qqplot(self.data, line=self.lineType,ax=self.axs)
+
+        self.figure.tight_layout(pad=1.2)
+
+        plt.show()
+
+class GaussianMixturePlot(LissaFigure):
+    def __init__(
+            self,
+            data,
+            model
+            ):
+        self.data = data
+        self.model = model
+        self.stds = np.sqrt(model.covariances_).flatten()
+        self.weights = model.weights_
+
+        self.params["histogram_name"] = "Histogram"
+        self.params["gaussian_name"] = "Gaussian"
+
+    def plot(
+            self,
+            limits  =   (0,17)
+            ):
+        
+        # Criando um range de valores para plotar as distribuições
+        x = np.linspace(limits[0], np.max(self.data), 1000)
 
 
+        # Plotando histograma dos dados originais
+        self.ax = self.figure.add_subplots(1,1,1)
+        self.ax.hist(self.data, bins=100, density=True, alpha=0.5, label=self.params["histogram_name"])
+        self.ax.xlim(limits[0],limits[1])
 
+        # Plotando cada gaussiana individualmente
+        for i in range(self.model.means_.shape[0]):
+            self.ax.plot(x, self.weights[i] * norm.pdf(x, self.means[i], self.stds[i]), label=self.params["gaussian_name"] + f"{i+1}")
+
+        self.figure.legend()
+        self.figure.title(self.params["plot_title"],fontsize=self.params["title_size"])
+        self.ax.xlabel(self.params["x_label"])
+        self.ax.ylabel(self.params["y_label"])
+        self.figure.show()
 
 
 def FigureComponents(
@@ -363,49 +498,7 @@ def PlotHMMSeries(
         
     
 
-def GaussianMixturePlot(
-        data    :   np.ndarray,
-        gmm     :   GaussianMixture,
-        strings :   list,
-        limits  =   (0,17),
-        figsize =   (7,5),
-        path    =   "../imagens_gerais/"
-        ):
-    
-    '''
-        Generates the Gaussian Mixture Model plot on provided data.
-    '''
-    model = gmm
-    means = model.means_.flatten()
-    stds = np.sqrt(model.covariances_).flatten()
-    weights = model.weights_
 
-    # Criando um range de valores para plotar as distribuições
-    x = np.linspace(limits[0], np.max(data), 1000)
-
-
-    fig = plt.figure(figsize=figsize)
-    # Plotando histograma dos dados originais
-    plt.hist(data, bins=100, density=True, alpha=0.5, label=strings[0])
-    plt.xlim(limits[0],limits[1])
-
-    # Plotando cada gaussiana individualmente
-    for i in range(model.means_.shape[0]):
-        plt.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]), label=f"{strings[1]} {i+1}")
-
-    # Plotando a soma das gaussianas
-    #pdf = np.exp(gmm.score_samples(x.reshape(-1, 1)))
-    #plt.plot(x, pdf, label="Soma das Gaussianas", color="blue", linestyle="dashed")
-
-    plt.legend()
-    plt.title(strings[2])
-    plt.xlabel(strings[3])
-    plt.ylabel(strings[4])
-    plt.savefig(path + "gmm_"+data.name+".jpg",bbox_inches='tight')
-    plt.show()
-
-
-    return gmm, fig
 
 def Histogram(
         data        :   pd.DataFrame,
@@ -534,6 +627,51 @@ def HMMPicture(
 
     plt.tight_layout()
     return fig,axs
+
+
+def GaussianMixturePlot(
+        data    :   np.ndarray,
+        gmm     :   GaussianMixture,
+        strings :   list,
+        limits  =   (0,17),
+        figsize =   (7,5),
+        path    =   "../imagens_gerais/"
+        ):
+    
+    '''
+        Generates the Gaussian Mixture Model plot on provided data.
+    '''
+    model = gmm
+    means = model.means_.flatten()
+    stds = np.sqrt(model.covariances_).flatten()
+    weights = model.weights_
+
+    # Criando um range de valores para plotar as distribuições
+    x = np.linspace(limits[0], np.max(data), 1000)
+
+
+    fig = plt.figure(figsize=figsize)
+    # Plotando histograma dos dados originais
+    plt.hist(data, bins=100, density=True, alpha=0.5, label=strings[0])
+    plt.xlim(limits[0],limits[1])
+
+    # Plotando cada gaussiana individualmente
+    for i in range(model.means_.shape[0]):
+        plt.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]), label=f"{strings[1]} {i+1}")
+
+    # Plotando a soma das gaussianas
+    #pdf = np.exp(gmm.score_samples(x.reshape(-1, 1)))
+    #plt.plot(x, pdf, label="Soma das Gaussianas", color="blue", linestyle="dashed")
+
+    plt.legend()
+    plt.title(strings[2])
+    plt.xlabel(strings[3])
+    plt.ylabel(strings[4])
+    plt.savefig(path + "gmm_"+data.name+".jpg",bbox_inches='tight')
+    plt.show()
+
+    return gmm, fig
+
 
 
 

@@ -8,7 +8,7 @@ from typing import Tuple
 
 from .picture import Traducao, Measures
 
-#from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field
 
 from scipy import signal as sig
 

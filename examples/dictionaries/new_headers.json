@@ -1,0 +1,23 @@
+{
+    "numerical_headers": [
+        "ESP intake Pressure",
+        "VSD power frequency",
+        "ESP motor temperature",
+        "Well head Temperature",
+        "ESP Current Module",
+        "ESP discharge pressure",
+        "ESP intake temperature",
+        "ESP Vibration Module",
+        "ESP Motor Voltage",
+        "Well head pressure"
+    ],
+    "non_numerical_headers": [
+        "Well aligned to Train A",
+        "Well aligned to Train B",
+        "Failure Info",
+        "Pump Info",
+        "Well Run",
+        "Failure",
+        "Well_down"
+    ]
+}

@@ -8,15 +8,15 @@ from typing import Tuple
 
 from .picture import Traducao, Measures
 
-from pydantic import BaseModel, Field
+#from pydantic import BaseModel, Field
 
 from scipy import signal as sig
 
-class Equipment(BaseModel):
-    name: str
-    info: str
-    failure_info: str
-    data : pd.DataFrame
+# class Equipment(BaseModel):
+#     name: str
+#     info: str
+#     failure_info: str
+#     data : pd.DataFrame
 
 
 

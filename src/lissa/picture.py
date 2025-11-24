@@ -26,10 +26,10 @@ def Traducao(
         If exists, translate a property from english to portuguese.
     '''
 
-    dictionaries_dir = Path(__file__).resolve()/"dictionaries"
+    dictionaries_dir = "./dictionaries/dictionaries.json"
         
-    with (dictionaries_dir/"dictionaries.json").open() as dictionary:
-        dict_of_dicts = dictionary.read()
+    with open(dictionaries_dir, "r") as dictionary:
+        dict_of_dicts = json.load(dictionary)
 
     dicionario = dict_of_dicts["translation_to_portuguese"]
 

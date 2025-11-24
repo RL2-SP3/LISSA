@@ -3,6 +3,8 @@ from sklearn.preprocessing import power_transform
 import pandas as pd
 from typing import List, Tuple
 
+from scipy.stats import norm
+
 from hmmlearn import hmm
 
 from matplotlib import pyplot as plt
@@ -144,7 +146,10 @@ def PostProcessing(
     modelData.set_index(keys="Well Run",append=True,inplace=True)
 
     originalData[outputHeader] = 0
-    originalData.loc[modelData.index,outputHeader] =  model.predict(totalReshaped,totalLength)+1;
+    if type(model) == hmm.BaseHMM:
+        originalData.loc[modelData.index,outputHeader] =  model.predict(totalReshaped,totalLength)+1
+    else:
+        originalData.loc[modelData.index,outputHeader] =  model.predict(totalReshaped)+1
 
     originalData.reset_index(level="Well Run",inplace=True)
     modelData.reset_index(level="Well Run",inplace=True)
@@ -155,106 +160,93 @@ def PostProcessing(
     return originalData,modelData
     
 
-   
-    # if originalData.index.unique().shape[0] == originalData.index.shape[0]:
-    #     originalData[outputHeader] = 0
-    #     originalData.loc[modelData[outputHeader].index,outputHeader] = modelData[outputHeader]
-    #     return originalData
+class GaussianMixtureModel:
+
+    DEFAULT_FIG_PARAMS = {
+            "fig_size"          :   (20,10),
+            "text_size"         :   10,
+            "title_size"        :   16,
+            "tick_size"         :   10,
+            "label_size"        :   10,
+            "tight_layout_pad"  :   1,
+            "dpi"               :   600
+        }
     
-    # else:
-    #     originalData_ = originalData.reset_index().set_index(["index","Well Run"])
-    #     modelData_ = modelData.reset_index().set_index(["index","Well Run"])
+    DEFAULT_LABEL_PARAMS = {
+            "x_label"           :   "X Label",
+            "y_label"           :   "Y Label",
+            "plot_title"        :   "Title of the Plot",
+            "colorbar_title"    :   "Colorbar title",
+            "legend_title"      :   "Legend title"
+            }
 
-    #     originalData_[outputHeader] = 0
-    #     originalData_.loc[modelData_[outputHeader].index,outputHeader] = modelData_[outputHeader]
+    DEFAULT_GAUSSIAN_MIXTURE_MODEL_PARAMS = {
+        "histogram_name" : "Histogram",
+        "gaussian_name"  : "Gaussian",
+        "figsize"        : (20,10)
+    }
 
-    #     originalData_.reset_index(level="Well Run",inplace=True)
+    DEFAULT_SAVE_PARAMS = {
+            "save_figure"       :    False,
+            "dir"               :    "./",
+            "file_name"         :    "image"            
+        }
+    
+    DEFAULT_DICTS_PARAMS ={
+            "portuguese_dictionary" :   "translation_to_portuguese",
+            "units"                 :   "measurement_units",
+            "dict_path"             :   "./dictionaries/dictionaries.json",
+            "headers_path"          :   "./dictionaries/new_headers.json"
+        }
 
-    #     # Realizar merge com base em chaves que permitem identificar a linha
-    #     # merged = originalData_.merge(
-    #     #     modelData_[[originalData.index.name, 'Well Run', outputHeader]],
-    #     #     on=[originalData.index.name, 'Well Run'],  # ajuste conforme suas chaves
-    #     #     how='left').fillna(0)
+    params = {**DEFAULT_GAUSSIAN_MIXTURE_MODEL_PARAMS}
 
+    def __init__(self,data,**kwargs):
+
+        self.params = {**self.params, **kwargs}
+       
+        verbose = kwargs.pop("verbose", False)
+        self.gmm = GaussianMixture(**kwargs)
+
+        reshaped_data = data.to_numpy()
+        if type(data) == pd.Series:
+            reshaped_data = reshaped_data.reshape(-1,1)
         
-    #     return originalData_
-
-
-def GaussianMixtureFit(
-        data:           pd.Series | pd.DataFrame ,
-        n_components:   int,
-        seed:           int,
-        verbose=True
-        ):
-    
-    '''
-        Fits a Gaussian Mixture Model into provided data
-    '''
-    
-
-    reshapedData = data.to_numpy()
-    if type(data) == pd.Series:
-        reshapedData = reshapedData.reshape(-1,1)
-    
-    gmm = GaussianMixture(n_components=n_components, random_state=seed,covariance_type="full")
-    gmm.fit(reshapedData)
-
-    if verbose:
-        print("GMM AIC: " + str(gmm.aic(reshapedData)))
-        print("GMM BIC: " + str(gmm.bic(reshapedData)))
-
-    return gmm
-
-
-
-
-'''
-    These functions might be deprecated:
-'''
-
-
-# def GaussianHiddenMarkovModel(
-#         X_train:        pd.Series | pd.DataFrame , 
-#         trainLength:    np.ndarray, 
-#         mainSeed:       int, 
-#         n:              int,
-#         covar_type="full",
-#         algorithm="viterbi"
-#         ) -> hmm.GaussianHMM:
-    
-#     '''
-#         This function defines a model and reshapes if the input is a pd.Series.
-#         It allows the code to be more easier to deal without knowing hmmlearn.
-#     '''
-    
-#     model = hmm.GaussianHMM(
-#         n_components=n,
-#         covariance_type=covar_type,
-#         random_state=mainSeed,
-#         algorithm=algorithm,
-#         n_iter = 100,
-#         tol=0.01)
-
-#     reshapedData = X_train.to_numpy()
-    
-#     if type(X_train) == pd.Series:
-#         reshapedData = reshapedData.reshape(-1,1)
         
-#     model.fit(reshapedData,trainLength)
-    
-#     return model
+        self.gmm.fit(reshaped_data)
+
+        if verbose:
+            print("GMM AIC: " + str(self.gmm.aic(reshaped_data)))
+            print("GMM BIC: " + str(self.gmm.bic(reshaped_data)))
+
+    def __getattr__(self, name):
+        return getattr(self.gmm,name)
+
+    def plot_gmm(self,limits  =   (0,17)):
+               
+        self.stds = np.sqrt(self.gmm.covariances_).flatten()
+        self.weights = self.gmm.weights_
+        self.means = self.gmm.means_
+
+        # Criando um range de valores para plotar as distribuições
+        x = np.linspace(limits[0], np.max(self.data), 1000)
 
 
-# def StandardMarkovModel(n,seed, gmm):
-#     model = hmm.GaussianHMM(
-#         n_components=n,
-#         random_state=seed,
-#         covariance_type="full",
-#         init_params="st",
-#         #algorithm="map"
-#         )
-   
-#     model.means_ = gmm.means_
-#     model.covars__ = gmm.covariances_
+        # Plotando histograma dos dados originais
+        self.figure = plt.figure(figsize=self.params["figsize"])
+        self.ax = self.figure.add_subplot(1,1,1)
+        
+        self.ax.hist(self.data, bins=100, density=True, alpha=0.5, label=self.params["histogram_name"])
+        self.ax.set_xlim(limits[0],limits[1])
 
-#     return model
+        # Plotando cada gaussiana individualmente
+        for i in range(self.gmm.means_.shape[0]):
+            self.ax.plot(x, self.weights[i] * norm.pdf(x, self.means[i], self.stds[i]), label=self.params["gaussian_name"] + f"{i+1}")
+
+        self.figure.legend()
+        self.figure.suptitle(self.params["plot_title"],fontsize=self.params["title_size"])
+        self.ax.set_xlabel(self.params["x_label"])
+        self.ax.set_ylabel(self.params["y_label"])
+        self.figure.show()
+
+

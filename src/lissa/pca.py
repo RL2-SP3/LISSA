@@ -2,6 +2,10 @@ import pandas as pd
 
 import lissa.processing as pro
 
+class Transformations():
+    def __init__(self):
+        pass
+
 
 def AutoModelApplier(model, exportData: pd.DataFrame):
     '''

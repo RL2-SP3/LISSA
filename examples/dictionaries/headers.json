@@ -1,0 +1,46 @@
+{
+    "temperature" : [
+        "ESP discharge temperature sensor",
+        "ESP intake temperature",
+        "ESP motor temperature",
+        "Well head Temperature"
+    ],
+
+    "pressure" : [
+        "ESP intake Pressure",
+        "ESP discharge pressure",
+        "ESP differential pressure",
+        "Well head pressure"
+    ],
+
+
+    "electrical" : [
+        "ESP motor Current - phase A",
+        "ESP motor Current - phase B",
+        "ESP motor Current - phase C",
+        "VSD power frequency",
+        "ESP Motor Voltage"
+    ],
+
+    "vibration" : [
+        "ESP Vibration X",
+        "ESP Vibration Y"
+    ],
+
+    "percentual" : [
+        "Choke Opening",
+        "Water Cut @ 20degC - 1 atm"
+    ],
+
+    "information" : [    
+        "Well aligned to Train A",
+        "Well aligned to Train B",
+        "Failure Info",
+        "Pump Info",
+        "Well Run",
+        "Failure",
+        "Well_down"
+    ]
+
+
+}

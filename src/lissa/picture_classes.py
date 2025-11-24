@@ -1,26 +1,19 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from matplotlib import figure, axes
+from matplotlib import axes
 import numpy as np
 
 import statsmodels.api as sm
 
-import seaborn as sns
-import matplotlib.colors as mcolors
-
-from sklearn.mixture import GaussianMixture
-import scipy.stats as ss
 from math import ceil, sqrt
-
-from scipy.stats import norm
 
 from pathlib import Path
 
 import json
 
 
-class LissaFigure():
+class LissaFigure:
 
     DEFAULT_FIG_PARAMS = {
             "fig_size"          :   (20,10),
@@ -32,7 +25,8 @@ class LissaFigure():
             "alpha"             :   0.3,
             "layout"            :   (2,5),
             "y_dist"            :   1,
-            "tight_layout_pad"  :   1
+            "tight_layout_pad"  :   1,
+            "dpi"               :   600
         }
     
     DEFAULT_LABEL_PARAMS = {
@@ -55,7 +49,9 @@ class LissaFigure():
     
     DEFAULT_DICTS_PARAMS ={
             "portuguese_dictionary" :   "translation_to_portuguese",
-            "units"                 :   "measurement_units"
+            "units"                 :   "measurement_units",
+            "dict_path"             :   "./dictionaries/dictionaries.json",
+            "headers_path"          :   "./dictionaries/new_headers.json"
         }
     
     params = {
@@ -69,62 +65,60 @@ class LissaFigure():
     def __init__(
             self,
             data,
-            properties,
             **kwargs
             ):
         
         self.params = {**self.params, **kwargs}
-        self.properties = properties
-        self.properties_translated = properties.copy()
         self.data = data
         self.measures = {}
 
-        dictionaries_dir = Path(__file__).resolve().parent / "dictionaries"
+        #dictionaries_dir = Path(__file__).resolve().parent / "dictionaries"
         
-        with (dictionaries_dir/"dictionaries.json").open() as dictionary:
+        with (self.params["dict_path"]).open() as dictionary:
             self.dict_of_dicts = json.load(dictionary)
 
-    def __repr__(self):
-        return f"LissaFigure(properties={self.properties}, fig_size={self.params['fig_size']})"
+        with (self.params["headers_path"]).open() as headers:
+            self.numerical_properties = headers["numerical_headers"]
+            self.non_numerical_properties = headers["non_numerical_headers"]
 
-    # def plot(self):
-    #     self.figure = plt.figure(figsize=self.params["fig_size"])
-        
+            self.numerical_properties_translated = self.numerical_properties.copy()
+            self.non_numerical_properties_translated = self.non_numerical_properties.copy()
+
+    def __repr__(self):
+        return "in development!"#f"LissaFigure(data={self.data.name})"
+    
     def load_parameters(self,file_path):
         with Path(file_path).open() as dictionary:
             self.params.update(json.load(dictionary))
 
-    def _mapping(self,dict_name):
+    def _mapping(self,dict_name, headers):
         if dict_name not in self.dict_of_dicts:
             print(f"Dictionary {dict_name} not found. Returning empty dict!")
             return {}
         else: 
             return {
                 prop:self.dict_of_dicts[dict_name][prop] 
-                for prop in self.properties 
+                for prop in headers 
                 if prop in self.dict_of_dicts[dict_name]
                 }
         
-    def translate(self,dict_name):
-        self.properties_translated = [
-                self.dict_of_dicts[dict_name][prop] 
-                for prop in self.properties 
-                if prop in self.dict_of_dicts[dict_name]
-                ]
+    def set_translation(self):
+        self.numerical_properties_translated = self._mapping(self.params["portuguese_dictionary"],self.numerical_properties)
+        self.non_numerical_properties_translated = self._mapping(self.params["portuguese_dictionary"],self.non_numerical_properties)
 
     def set_measures(self):
-        self.measures = self._mapping(self.params["units"])      
+        self.measures = self._mapping(self.params["units"],self.numerical_properties)      
             
     def save_fig(self):
         if self.params["save_figure"]:
-            plt.savefig(Path(self.params["dir"]) / self.params["file_name"], bbox_inches='tight')
+            self.figure.savefig(Path(self.params["dir"]) / self.params["file_name"], bbox_inches='tight')
         else:
             print("This figure was not saved!")
 
     def matrix_plot(self):
         self.figure = plt.figure(figsize=self.params["fig_size"])
         self.ax = self.figure.add_subplot(1,1,1)
-        self.ax.imshow(self.data, interpolation='nearest',aspect='auto',cmap='bwr')
+        self.ax.imshow(self.data[self.numerical_properties], interpolation='nearest',aspect='auto',cmap='bwr')
 
         n,m = self.data.shape
 
@@ -139,7 +133,7 @@ class LissaFigure():
     
         self.ax.set_yticks(
             ticks=range(n),
-            labels=[prop for prop in self.properties_translated],
+            labels=[prop for prop in self.numerical_properties_translated],
             fontsize=self.params["tick_size"])
         
         self.ax.set_xticks(
@@ -147,16 +141,19 @@ class LissaFigure():
             labels=range(m),
             fontsize=self.params["tick_size"])
         
+        self.ax.set_xlabel(self.params["x_label"],fontsize=self.params["title_size"])
+        self.ax.set_ylabel(self.params["y_label"],fontsize=self.params["title_size"])
+        
 
     def histogram(self):
-        self.ax = self.data.hist(
+        self.ax = self.data[self.numerical_properties].hist(
             bins=self.bins,
             figsize=self.params["fig_size"],
             layout=self.params["layout"]
             )
 
         for index,ax in enumerate(axes.flatten()):
-            ax.set_title(self.properties_translated[index])
+            ax.set_title(self.numerical_properties_translated[index])
             ax.set_xlabel(self.params["x_label"] + " ["+ self.measures[index] +"]" )
             ax.set_ylabel(self.params["y_label"])
          
@@ -173,95 +170,29 @@ class LissaFigure():
             fontsize=self.params["text_size"], 
             y=self.params["y_dist"])
         
-        self.n = len(self.data.columns)
-        if self.n > 1:   
-            self.axs = self.axs.ravel()
-            for index,prop in enumerate(self.properties):
-                sm.qqplot(self.data[prop], line=self.params["line_type"],ax=self.axs[index],dist=self.params["y_dist"])
-                self.axs[index].title.set_text(self.properties_translated[index])
-                self.axs[index].set_xlabel(self.params["x_label"])
-                self.axs[index].set_ylabel(self.params["y_label"])
-                
-            if (len(self.properties) % 2):
-                self.axs[self.n].remove()
-        else:
-            sm.qqplot(self.data, line=self.params["line_type"],ax=self.axs)
-    #colocar um loop para setar as labels para todos os ax.
-    def plot(self):
+        self.axs = self.axs.ravel()
+        for index,prop in enumerate(self.numerical_properties):
+            sm.qqplot(self.data[prop], line=self.params["line_type"],ax=self.axs[index],dist=self.params["y_dist"])
+            self.axs[index].title.set_text(self.numerical_properties_translated[index])
+            self.ax.set_xlabel(self.params["x_label"],fontsize=self.params["title_size"])
+            self.ax.set_ylabel(self.params["y_label"],fontsize=self.params["title_size"])
         
-        self.figure.suptitle(self.params["plot_title"],fontsize=self.params["title_size"])
+        n = len(self.numerical_properties)    
+        if (n > 1) and (n % 2):   
+            self.axs[self.n].remove()
 
-        self.figure.colorbar(label=self.params["colorbar_title"])
-
-        self.ax.set_xlabel(self.params["x_label"],fontsize=self.params["title_size"])
-        self.ax.set_ylabel(self.params["y_label"],fontsize=self.params["title_size"])
-
-        self.figure.tight_layout(pad=self.params["tight_layout_pad"])
-        self.figure.show()
-
-
-
-
-
-class GaussianMixturePlot(LissaFigure):
-    def __init__(
-            self,
-            data,
-            model
-            ):
-        super().__init__()
-        self.data = data
-        self.model = model
-        self.stds = np.sqrt(model.covariances_).flatten()
-        self.weights = model.weights_
-
-        self.params["histogram_name"] = "Histogram"
-        self.params["gaussian_name"] = "Gaussian"
-
-    def plot(
-            self,
-            limits  =   (0,17)
-            ):
-        
-        # Criando um range de valores para plotar as distribuições
-        x = np.linspace(limits[0], np.max(self.data), 1000)
-
-
-        # Plotando histograma dos dados originais
-        self.ax = self.figure.add_subplots(1,1,1)
-        self.ax.hist(self.data, bins=100, density=True, alpha=0.5, label=self.params["histogram_name"])
-        self.ax.xlim(limits[0],limits[1])
-
-        # Plotando cada gaussiana individualmente
-        for i in range(self.model.means_.shape[0]):
-            self.ax.plot(x, self.weights[i] * norm.pdf(x, self.means[i], self.stds[i]), label=self.params["gaussian_name"] + f"{i+1}")
-
-        self.figure.legend()
-        self.figure.title(self.params["plot_title"],fontsize=self.params["title_size"])
-        self.ax.xlabel(self.params["x_label"])
-        self.ax.ylabel(self.params["y_label"])
-        self.figure.show()
-
-
-class EquipmentPlot(LissaFigure):
-    '''
-        Given a pump data, returns the plot of properties listed in Headers.
-    '''
-    def __init__(self,equipment_data):
-        super().__init__()
+    def time_series_plot(self):
         self.ax = self.figure.add_subplot(1,1,1)
-        equipment_data[self.properties].plot(ax=self.ax)
+        self.data[self.numerical_properties].plot(ax=self.ax)
 
         self.ax.legend(
-            self.properties_translated,
+            self.numerical_properties_translated,
             loc='upper left',
             bbox_to_anchor=(1, 1),
             fontsize = self.params["font_size"],
             title = self.params["legend_title"]
             )
-        
-        self.data = equipment_data
-    
+
     def failure_reference(self,time_entry):
         self.ax.axvline(
             time_entry, 
@@ -269,7 +200,7 @@ class EquipmentPlot(LissaFigure):
             linestyle='--', 
             linewidth=2
             )
-        
+            
     def classification_boundaries(self,n,state_name):
         cmap = plt.get_cmap(self.params["color_pallette"], n+1)
 
@@ -279,15 +210,21 @@ class EquipmentPlot(LissaFigure):
         
             self.ax.fill_between(
                 self.equipment_data.index,
-                np.min(self.data[self.properties]),
-                np.max(self.data[self.properties]),
+                np.min(self.data[self.numerical_properties]),
+                np.max(self.data[self.numerical_properties]),
                 where=(self.data[state_name] == state),
                 color=color,
                 alpha=self.params["alpha"],
                 label= state_name + " " +str(state)
-                )
-            
+                )           
             
             # h, l = ax.get_legend_handles_labels()
             # ax.legend(h,[Traducao(item, english) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=gnrlFont)
-
+    
+    #colocar um loop para setar as labels para todos os ax.
+    def plot(self):
+        self.figure.suptitle(self.params["plot_title"],fontsize=self.params["title_size"])
+        self.figure.colorbar(label=self.params["colorbar_title"])
+        self.figure.tight_layout(pad=self.params["tight_layout_pad"])
+        self.figure.set_dpi(self.params["dpi"])
+        self.figure.show()

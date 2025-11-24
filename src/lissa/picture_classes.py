@@ -29,7 +29,10 @@ class LissaFigure():
             "tick_size"         :   10,
             "label_size"        :   10,
             "color_pallette"    :   "Oranges",
-            "alpha"             :   0.3
+            "alpha"             :   0.3,
+            "layout"            :   (2,5),
+            "y_dist"            :   1,
+            "tight_layout_pad"  :   1
         }
     
     DEFAULT_LABEL_PARAMS = {
@@ -39,6 +42,10 @@ class LissaFigure():
             "colorbar_title"    :   "Colorbar title",
             "legend_title"      :   "Legend title"
             }
+    
+    DEFAULT_QQ_PARAMS = {
+            "linetype"          :   "s"
+    }
     
     DEFAULT_SAVE_PARAMS = {
             "save_figure"       :    False,
@@ -77,8 +84,11 @@ class LissaFigure():
         with (dictionaries_dir/"dictionaries.json").open() as dictionary:
             self.dict_of_dicts = json.load(dictionary)
 
-    def plot(self):
-        self.figure = plt.figure(figsize=self.params["fig_size"])
+    def __repr__(self):
+        return f"LissaFigure(properties={self.properties}, fig_size={self.params['fig_size']})"
+
+    # def plot(self):
+    #     self.figure = plt.figure(figsize=self.params["fig_size"])
         
     def load_parameters(self,file_path):
         with Path(file_path).open() as dictionary:
@@ -111,14 +121,8 @@ class LissaFigure():
         else:
             print("This figure was not saved!")
 
-    def __repr__(self):
-        return f"LissaFigure(properties={self.properties}, fig_size={self.params['fig_size']})"
-        
-
-
-class MatrixPlot(LissaFigure):
-    def plot(self):
-        super().plot()
+    def matrix_plot(self):
+        self.figure = plt.figure(figsize=self.params["fig_size"])
         self.ax = self.figure.add_subplot(1,1,1)
         self.ax.imshow(self.data, interpolation='nearest',aspect='auto',cmap='bwr')
 
@@ -133,66 +137,47 @@ class MatrixPlot(LissaFigure):
                         fontsize=self.params["text_size"]
                         )
     
-        plt.yticks(
-            ticks=range(0,n),
+        self.ax.set_yticks(
+            ticks=range(n),
             labels=[prop for prop in self.properties_translated],
             fontsize=self.params["tick_size"])
         
-        plt.xticks(
-            ticks=range(0,len(m)),
-            labels=range(0,len(m)),
+        self.ax.set_xticks(
+            ticks=range(m),
+            labels=range(m),
             fontsize=self.params["tick_size"])
         
-        
-        plt.title(self.params["title"],fontsize=self.params["title_size"])
 
-        plt.colorbar(label=self.params["colorbar_title"])
+    def histogram(self):
+        self.ax = self.data.hist(
+            bins=self.bins,
+            figsize=self.params["fig_size"],
+            layout=self.params["layout"]
+            )
 
-        plt.xlabel(self.params["x_label"],fontsize=self.params["title_size"])
-        plt.ylabel(self.params["y_label"],fontsize=self.params["title_size"])
+        for index,ax in enumerate(axes.flatten()):
+            ax.set_title(self.properties_translated[index])
+            ax.set_xlabel(self.params["x_label"] + " ["+ self.measures[index] +"]" )
+            ax.set_ylabel(self.params["y_label"])
+         
 
-        plt.tight_layout()
+    def quantile_quantile_plot(self):
 
-        return plt.gcf(), plt.gca()
-
-
-
-
-class QuantileQuantilePlot(LissaFigure):
-    '''
-    Generates QQ plot, measuring the desired data distribution relative to another distribution, with gaussian as default.
-    '''
-
-    def __init__(self,
-                 data,
-                 line_type = "s",
-                 layout = (2,5),
-                 y_dist = 1                 
-                 ):
-        super().__init__()
-        
         self.figure, self.axs = plt.subplots(
-            layout[0],
-            layout[1],
+            self.params["layout"][0],
+            self.params["layout"][1],
             figsize=self.params["fig_size"])
         
         self.figure.suptitle(
             self.params["plot_title"],
             fontsize=self.params["text_size"], 
-            y=y_dist)
+            y=self.params["y_dist"])
         
-        self.n = len(data.columns)
-
-        self.data = data
-
-        self.line_type = line_type
-        self.dist_to_title_foot = y_dist
-
-    def plot(self):        
+        self.n = len(self.data.columns)
         if self.n > 1:   
             self.axs = self.axs.ravel()
             for index,prop in enumerate(self.properties):
-                sm.qqplot(self.data[prop], line=self.line_type,ax=self.axs[index],dist=self.dist_to_title_foot)
+                sm.qqplot(self.data[prop], line=self.params["line_type"],ax=self.axs[index],dist=self.params["y_dist"])
                 self.axs[index].title.set_text(self.properties_translated[index])
                 self.axs[index].set_xlabel(self.params["x_label"])
                 self.axs[index].set_ylabel(self.params["y_label"])
@@ -200,11 +185,23 @@ class QuantileQuantilePlot(LissaFigure):
             if (len(self.properties) % 2):
                 self.axs[self.n].remove()
         else:
-            sm.qqplot(self.data, line=self.lineType,ax=self.axs)
+            sm.qqplot(self.data, line=self.params["line_type"],ax=self.axs)
+    #colocar um loop para setar as labels para todos os ax.
+    def plot(self):
+        
+        self.figure.suptitle(self.params["plot_title"],fontsize=self.params["title_size"])
 
-        self.figure.tight_layout(pad=1.2)
+        self.figure.colorbar(label=self.params["colorbar_title"])
 
-        plt.show()
+        self.ax.set_xlabel(self.params["x_label"],fontsize=self.params["title_size"])
+        self.ax.set_ylabel(self.params["y_label"],fontsize=self.params["title_size"])
+
+        self.figure.tight_layout(pad=self.params["tight_layout_pad"])
+        self.figure.show()
+
+
+
+
 
 class GaussianMixturePlot(LissaFigure):
     def __init__(
@@ -293,33 +290,4 @@ class EquipmentPlot(LissaFigure):
             
             # h, l = ax.get_legend_handles_labels()
             # ax.legend(h,[Traducao(item, english) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=gnrlFont)
-
-
-
-class Histogram(LissaFigure):
-    def __init__(self,data,**kwargs):
-        super().__init__()
-        self.data = data
-        self.params.update(kwargs)
-    def plot(self):
-
-        axes = self.data.hist(
-            bins=self.bins,
-            figsize=self.params["fig_size"],
-            layout=self.params["layout"]
-            )
-
-        for index,ax in enumerate(axes.flatten()):
-            ax.set_title(self.properties_translated[index])
-            ax.set_xlabel(self.params["x_label"] + " ["+ self.measures[index] +"]" )
-            ax.set_ylabel(self.params["y_label"])
-            
-        plt.suptitle(self.params["plot_title"],fontsize=20)
-        plt.tight_layout(pad=1.3)
-
-        #isso não é bom, mas tbm não encontrei outra solução
-        return plt.gcf(), plt.gca()
-
-
-
 

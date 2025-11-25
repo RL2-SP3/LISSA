@@ -141,46 +141,6 @@ def FeatureCreation(entireData:pd.DataFrame)->pd.DataFrame:
 
     return entireData
 
-
-def SetHeaders():
-    '''
-    This function gives all headers into the original dataset.
-    
-    '''
-    Temperature = [
-    'ESP discharge temperature sensor',
-    'ESP intake temperature',
-    'ESP motor temperature',
-    'Well head Temperature'
-    ]
-
-    Pressure = [
-        'ESP intake Pressure',
-        'ESP discharge pressure',
-        'ESP differential pressure',
-        'Well head pressure'
-        ]
-
-    Electrical = [
-        "ESP motor Current - phase A",
-        "ESP motor Current - phase B",
-        "ESP motor Current - phase C",
-        'VSD power frequency',
-        'ESP Motor Voltage'
-    ]
-
-    Vibration = [
-        "ESP Vibration X",
-        "ESP Vibration Y"
-    ]
-
-    Other = [
-        'Choke Opening',
-        'Water Cut @ 20degC - 1 atm'
-    ]
-
-    return Temperature, Pressure, Electrical, Vibration, Other
-
 def mad(series):
     return np.median(np.abs(series - np.median(series)))
 

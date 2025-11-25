@@ -1,14 +1,14 @@
 {
     "numerical_headers": [
-        "ESP intake Pressure",
-        "VSD power frequency",
-        "ESP motor temperature",
-        "Well head Temperature",
         "ESP Current Module",
-        "ESP discharge pressure",
-        "ESP intake temperature",
-        "ESP Vibration Module",
         "ESP Motor Voltage",
+        "ESP Vibration Module",
+        "ESP discharge pressure",
+        "ESP intake Pressure",
+        "ESP intake temperature",
+        "ESP motor temperature",
+        "VSD power frequency",
+        "Well head Temperature",
         "Well head pressure"
     ],
     "non_numerical_headers": [

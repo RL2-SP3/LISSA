@@ -8,7 +8,7 @@
         "ESP differential pressure":"Pressão diferencial da BCS",
         "ESP motor temperature": "Temperatura do motor da BCS",
         "ESP intake Pressure":"Pressão na Entrada da BCS",
-        "Water Cut @ 20degC - 1 atm":"Fração de água @ ",
+        "Water Cut @ 20degC - 1 atm":"Fração de água @ 20degC - 1 atm",
         "ESP intake temperature":"Temperatura na Entrada da BCS", 
         "ESP discharge pressure":"Pressão de Descarga da BCS", 
         "Choke Opening":"Abertura da Válvula",

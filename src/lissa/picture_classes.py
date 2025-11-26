@@ -1,18 +1,18 @@
 import pandas as pd
 from matplotlib import pyplot as plt
+import matplotlib.cm as cm
 
-from matplotlib import axes
 import numpy as np
 
-import statsmodels.api as sm
-
+from statsmodels.api import qqplot
 from scipy.stats.distributions import norm
-
 from math import ceil, sqrt
-
 from pathlib import Path
 
 import json
+
+import warnings
+
 
 
 
@@ -29,7 +29,10 @@ class LissaFigure:
             "layout"            :   (2,5),
             "y_dist"            :   1,
             "tight_layout_pad"  :   1,
-            "dpi"               :   600
+            "dpi"               :   600,
+            "color_scale"       :   "tab10",
+            "log_scale_y"       :   False,
+            "log_scale_x"       :   False
         }
     
     DEFAULT_LABEL_PARAMS = {
@@ -60,9 +63,17 @@ class LissaFigure:
             "dict_path"             :   "./dictionaries/dictionaries.json",
             "headers_path"          :   "./dictionaries/new_headers.json"
         }   
+    
+    DEFAULT_FAILURE_PARAMS = {
+            "linewidth"             :   2,
+            "linestyle"             :   '--',
+            "linecolor"             :   "red",
+            "state_name"            :   "State"
+    }
 
     def __init__(
             self,
+            path = None,
             **kwargs
             ):
         
@@ -73,13 +84,14 @@ class LissaFigure:
             **self.DEFAULT_DICTS_PARAMS,
             **self.DEFAULT_QQ_PARAMS,
             **self.DEFAULT_HIST_PARAMS,
+            **self.DEFAULT_FAILURE_PARAMS,
             **kwargs
             }
         
-        self.measures = {}
-
-        #dictionaries_dir = Path(__file__).resolve().parent / "dictionaries"
-        
+        if path is not None:
+            dictionary = self._load_dict(path)
+            self.params.update(dictionary)
+               
         self.dict_of_dicts = self._load_dict(self.params["dict_path"])
 
         headers = self._load_dict(self.params["headers_path"])
@@ -92,20 +104,15 @@ class LissaFigure:
 
 
     def _load_dict(self,path):
-        with (path).open() as f:
+        with (Path(path)).open() as f:
             return json.load(f)
     
     def __repr__(self):
         return f"LissaFigure({self.params})"
-    
-    def load_parameters(self,file_path):
-        dictionary = self._load_dict(Path(file_path))
-
-        self.params.update(json.load(dictionary))
 
     def _mapping(self,dict_name, headers):
         if dict_name not in self.dict_of_dicts:
-            print(f"Dictionary {dict_name} not found. Returning empty dict!")
+            warnings.warn(f"Dictionary {dict_name} not found. Returning empty dict!")
             return {}
         else: 
             return {
@@ -117,92 +124,115 @@ class LissaFigure:
     def set_translation(self):
         self.numerical_properties_translated = self._mapping(self.params["portuguese_dictionary"],self.numerical_properties)
         self.non_numerical_properties_translated = self._mapping(self.params["portuguese_dictionary"],self.non_numerical_properties)
+        return self
 
-    def set_measures(self):
-        self.measures = self._mapping(self.params["units"],self.numerical_properties)      
+    def set_measures(self,no_scale=False):
+        if not no_scale:
+            self.measures = self._mapping(self.params["units"],self.numerical_properties)
+        else:
+            self.measures = {prop:"-" for prop in self.numerical_properties}
+        
+        return self
             
     def save_fig(self):
-        if self.params["save_figure"]:
+        if bool(self.params["save_figure"]) and hasattr(self,"figure"):
             self.figure.savefig(Path(self.params["dir"]) / self.params["file_name"], bbox_inches='tight')
         else:
-            print("This figure was not saved!")
+            warnings.warn("This figure was not saved!")
+
+        return self
     
     def set_figure(self):
-            
-        self.figure = plt.figure(figsize=self.params["fig_size"])
+        if hasattr(self,"figure"):
+            plt.close(self.figure)
+        
+        self.figure, self.axs = plt.subplots(
+            self.params["layout"][0],
+            self.params["layout"][1],
+            figsize=self.params["fig_size"])
+        
+        return self
+        
 
+    def _select_ax_to_plot(self,index=None):
+        if index == None:
+            return self.axs
+        else:
+            return (self.axs.ravel())[index]
+    
 
     def matrix_plot(
             self,
-            data : np.ndarray
+            data : pd.DataFrame,
+            index=None
             ):
         
+        ax = self._select_ax_to_plot(index)
         
-        self.ax = self.figure.add_subplot(1,1,1)
-        self.ax.imshow(data, interpolation='nearest',aspect='auto',cmap='bwr')
+        ax.imshow(data, interpolation='nearest',aspect='auto',cmap='bwr')
 
-        n,m = self.data.shape
+        n,m = data.shape
 
         for i in range(n):
             for j in range(m):
-                plt.text(j, i, f'{data[i, j]:.2f}', 
+                ax.text(j, i, f'{data.iloc[i, j]:.2f}', 
                         ha='center', 
                         va='center', 
                         color='black',
                         fontsize=self.params["text_size"]
                         )
     
-        self.ax.set_yticks(
+        ax.set_yticks(
             ticks=range(n),
-            labels=[prop for prop in self.numerical_properties_translated],
+            labels=[self.numerical_properties_translated[prop] for prop in data.index],
             fontsize=self.params["tick_size"])
         
-        self.ax.set_xticks(
+        ax.set_xticks(
             ticks=range(m),
             labels=range(m),
             fontsize=self.params["tick_size"])
         
-        self.figure.colorbar(label=self.params["colorbar_title"])
+        self.figure.colorbar(ax.images[0], ax=ax, label=self.params["colorbar_title"])
 
-        self._set_axes_texts(self.ax,title=None)
+        self._set_axes_texts(ax,title=None)
         self._finalize()
         
-    #TODO
-    def histogram(self):
+    def histogram(self,data):
+        for index, ax in enumerate(self.axs.ravel()):
 
-        self.axs = self.data[self.numerical_properties].hist(
-            bins=self.params["bins"],
-            figsize=self.params["fig_size"],
-            layout=self.params["layout"]
-            )
+            prop = self.numerical_properties[index]
+            translated_prop = self.numerical_properties_translated[prop]
 
-        for index,ax in enumerate(self.axs.flatten()):
+
+            data[prop].hist(
+                bins=self.params["bins"],
+                figsize=self.params["fig_size"],
+                layout=self.params["layout"],
+                ax=ax
+                )
+            
             self._set_axes_texts(
                 ax,
-                title=self.numerical_properties_translated[index],
-                measure_X=self.measures[index]
+                title=translated_prop,
+                measure_X=self.measures[prop]
                 )
         
         self._finalize()
          
 
-    def quantile_quantile_plot(self,distribution=norm):
+    def quantile_quantile_plot(self,data,distribution=norm):       
+        
+        for index,ax in enumerate(self.axs.ravel()):
+            prop = self.numerical_properties[index]
+            translated_prop = self.numerical_properties_translated[prop]
 
-        self.figure, self.axs = plt.subplots(
-            self.params["layout"][0],
-            self.params["layout"][1],
-            figsize=self.params["fig_size"])
-        
-        
-        self.axs = self.axs.ravel()
-        for index,ax in enumerate(self.axs):
-            sm.qqplot(
-                self.data[self.numerical_properties[index]], 
+            qqplot(
+                data[prop], 
                 line=self.params["line_type"],
                 ax=ax,
                 dist=distribution
                 )
-            self._set_axes_texts(index,self.numerical_properties_translated[index])
+            self._set_axes_texts(ax,translated_prop)
     
         n = len(self.numerical_properties)    
         if (n > 1) and (n % 2):   
@@ -210,68 +240,111 @@ class LissaFigure:
         
         self._finalize()
 
-    def time_series_plot(self):
-        self.ax = self.figure.add_subplot(1,1,1)
-        self.data[self.numerical_properties].plot(ax=self.ax)
+    def time_series_plot(self,data : pd.DataFrame,index=None):
+        cmap = plt.get_cmap(self.params["color_scale"])
+        plt.rcParams["axes.prop_cycle"] = plt.cycler(color=cmap(np.linspace(0,1,len(self.numerical_properties))))
 
-        self.ax.legend(
-            self.numerical_properties_translated,
+        ax = self._select_ax_to_plot(index)
+
+        lines = data[self.numerical_properties].plot(
+            ax=ax,
+            logy=bool(self.params["log_scale_y"]),
+            fontsize=self.params["text_size"])
+
+        translated = [
+            self.numerical_properties_translated[c] 
+            for c in self.numerical_properties
+]
+
+        leg = ax.legend(
+            handles = lines.lines,
+            labels = translated,
             loc='upper left',
             bbox_to_anchor=(1, 1),
             fontsize = self.params["text_size"],
-            title = self.params["legend_title"]
             )
         
-        self._set_axes_texts(self.ax)
+        leg.set_title(self.params["legend_title"], prop={"size": self.params["text_size"]})
+        
+        
+        self._set_axes_texts(ax)
         self._finalize()
 
-    def failure_reference(self,time_entry):
-        
-        if hasattr(self,"ax"):
-            self.ax.axvline(
+        self.time_flag = True
+
+        return self
+
+
+    def failure_reference(self,time_entry,index=None):
+        if not hasattr(self,"time_flag"):
+            raise ReferenceError("No time-series plot!")
+
+        if hasattr(self,"figure"):
+            ax = self._select_ax_to_plot(index)
+            ax.axvline(
                 time_entry, 
-                color='red', 
-                linestyle='--', 
-                linewidth=2
+                color       =   self.params["linecolor"],
+                linestyle   =   self.params["linestyle"],
+                linewidth   =   self.params["linewidth"]
                 )
         else:
-            raise ReferenceError("No ax set!")
-                
-    def classification_boundaries(self,n,state_name):
-        cmap = plt.get_cmap(self.params["color_pallette"], n+1)
-
-                
-        for state in self.data[state_name].unique():
-            color = cmap(state)  # Pega uma cor automática para cada estado
-            data_numpy = self.data[self.numerical_properties].to_numpy()
+            raise ReferenceError("No figure set!")
         
-            self.ax.fill_between(
-                self.data.index,
-                data_numpy.min(),
-                data_numpy.max(),
-                where=(self.data[state_name] == state),
+        return self
+                
+    def classification_boundaries(self, n, states_vector, index=None):
+
+        if not hasattr(self, "time_flag"):
+            raise ReferenceError("No time-series plot!")
+
+        ax = self._select_ax_to_plot(index)
+
+        cmap = plt.get_cmap(self.params["color_pallette"], n + 1)
+
+        
+        lines = ax.get_lines()
+        
+        if not lines:
+            raise RuntimeError("No data plotted on this axis; cannot infer x-axis.")
+
+        x = lines[0].get_xdata()
+
+        
+        ymin, ymax = ax.get_ylim()
+
+        
+        states = states_vector.to_numpy()
+
+        for state in np.unique(states):
+            color = cmap(state)
+            mask = (states == state)
+
+            ax.fill_between(
+                x,
+                ymin,
+                ymax,
+                where=mask,
                 color=color,
                 alpha=self.params["alpha"],
-                label= state_name + " " +str(state)
-                )           
-            
+                label=self.params["state_name"] + f" {state}"
+            )
+
             # h, l = ax.get_legend_handles_labels()
             # ax.legend(h,[Traducao(item, english) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=gnrlFont)
+
+        return self
     
     
     def _set_axes_texts(self,ax,title = None,measure_X=None,measure_Y=None):
-        x_label =  self.params["x_label"]
-        y_label =  self.params["y_label"]
         
         if title:
             ax.set_title(title)
-        if measure_X:
-            x_label = self.params["x_label"] + "[" + measure_X + "]"
-        if measure_Y:
-            y_label = self.params["y_label"] + "[" + measure_X + "]"
-        
-        ax.set_xlabel(x_label,fontsize=self.params["title_size"])
-        ax.set_ylabel(y_label,fontsize=self.params["title_size"])
+                
+        x_label =  self.params["x_label"] + ("[" + str(measure_X) + "]") * (measure_X is not None)
+        y_label =  self.params["y_label"] + ("[" + str(measure_Y) + "]") * (measure_Y is not None)
+                
+        ax.set_xlabel(x_label,fontsize=self.params["label_size"])
+        ax.set_ylabel(y_label,fontsize=self.params["label_size"])
 
 
     def _finalize(self):

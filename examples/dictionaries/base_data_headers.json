@@ -1,0 +1,33 @@
+{
+    "numerical_headers" : [
+        "ESP discharge temperature sensor",
+        "ESP intake temperature",
+        "ESP motor temperature",
+        "Well head Temperature",
+        "ESP intake Pressure",
+        "ESP discharge pressure",
+        "ESP differential pressure",
+        "Well head pressure",
+        "VSD power frequency",
+        "ESP Motor Voltage",
+        "ESP Vibration X",
+        "ESP Vibration Y",
+        "ESP motor Current - phase A",
+        "ESP motor Current - phase B",
+        "ESP motor Current - phase C",
+        "Choke Opening",
+        "Water Cut @ 20degC - 1 atm"        
+    ],
+
+    "non_numerical_headers" : [    
+        "Well aligned to Train A",
+        "Well aligned to Train B",
+        "Failure Info",
+        "Pump Info",
+        "Well Run",
+        "Failure",
+        "Well_down"
+    ]
+
+
+}

@@ -1,0 +1,17 @@
+{
+            "fig_size"          :   [20,10],
+            "text_size"         :   10,
+            "title_size"        :   16,
+            "tick_size"         :   10,
+            "label_size"        :   10,
+            "tight_layout_pad"  :   1,
+            "dpi"               :   600,
+            "x_label"           :   "Tempo",
+            "y_label"           :   "Medidas",
+            "plot_title"        :   "Séries após o Z-score",
+            "legend_title"      :   "Propriedades",
+            "save_figure"       :   0,
+            "dir"               :   "./",
+            "file_name"         :   "sexo"       ,
+            "layout"            :   [1,1]     
+        }

@@ -1,0 +1,20 @@
+{
+            "fig_size"          :   [20,8],
+            "text_size"         :   15,
+            "title_size"        :   16,
+            "tick_size"         :   15,
+            "label_size"        :   15,
+            "tight_layout_pad"  :   1,
+            "dpi"               :   100,
+            "x_label"           :   "Tempo",
+            "y_label"           :   "Medições nos sensores",
+            "plot_title"        :   "Propriedades da corrida B-18 2",
+            "legend_title"      :   "Variáveis",
+            "save_figure"       :   0,
+            "dir"               :   "./imagens_gerais/",
+            "file_name"         :   "crude_data"       ,
+            "layout"            :   [1,1],
+            "headers_path"      :   "./dictionaries/base_data_headers.json",     
+            "color_scale"       :   "tab20"
+
+        }

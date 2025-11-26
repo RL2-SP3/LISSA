@@ -183,7 +183,8 @@ class GaussianMixtureModel:
     DEFAULT_GAUSSIAN_MIXTURE_MODEL_PARAMS = {
         "histogram_name" : "Histogram",
         "gaussian_name"  : "Gaussian",
-        "figsize"        : (20,10)
+        "figsize"        : (20,10),
+        "plot_title"     : "Histogram"
     }
 
     DEFAULT_SAVE_PARAMS = {
@@ -199,12 +200,19 @@ class GaussianMixtureModel:
             "headers_path"          :   "./dictionaries/new_headers.json"
         }
 
-    params = {**DEFAULT_GAUSSIAN_MIXTURE_MODEL_PARAMS}
+    
 
     def __init__(self,data,**kwargs):
-
-        self.params = {**self.params, **kwargs}
-       
+        
+        self.params = {
+            **self.DEFAULT_FIG_PARAMS,
+            **self.DEFAULT_LABEL_PARAMS,
+            **self.DEFAULT_SAVE_PARAMS,
+            **self.DEFAULT_DICTS_PARAMS,
+            **self.DEFAULT_GAUSSIAN_MIXTURE_MODEL_PARAMS,
+            **kwargs
+        }
+        
         verbose = kwargs.pop("verbose", False)
         self.gmm = GaussianMixture(**kwargs)
 
@@ -218,7 +226,7 @@ class GaussianMixtureModel:
         if verbose:
             print("GMM AIC: " + str(self.gmm.aic(reshaped_data)))
             print("GMM BIC: " + str(self.gmm.bic(reshaped_data)))
-
+        self.data = data
     def __getattr__(self, name):
         return getattr(self.gmm,name)
 
@@ -233,7 +241,7 @@ class GaussianMixtureModel:
 
 
         # Plotando histograma dos dados originais
-        self.figure = plt.figure(figsize=self.params["figsize"])
+        self.figure = plt.figure(figsize=self.params["fig_size"])
         self.ax = self.figure.add_subplot(1,1,1)
         
         self.ax.hist(self.data, bins=100, density=True, alpha=0.5, label=self.params["histogram_name"])

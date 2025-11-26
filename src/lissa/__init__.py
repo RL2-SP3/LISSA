@@ -16,7 +16,7 @@
 # ⠀⠀⠀⠀⠈⠛⢿⣷⣤⣄⣀⣀⣀⣀⣠⣤⣴⡾⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 # ⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠛⠛⠛⠋⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 
-# Library Intended for Solving Special Assignments (LISSA)
+# Layer of Integration with Scikit-learn and Signal Analysis (LISSA)
 # 
 # Created for Equinor to ESP data processing (as it came)
 # 
@@ -27,6 +27,7 @@ from .ml import *
 from .pca import *
 from .picture import *
 from .processing import *
+from .picture_classes import *
 
 import locale
 

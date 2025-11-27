@@ -44,10 +44,11 @@ def Measures(Header:list):
         Links a property to it's measure.
     '''
 
-    dictionaries_dir = Path(__file__).resolve()/"dictionaries"
+    dictionaries_dir = "./dictionaries/dictionaries.json"
         
-    with (dictionaries_dir/"dictionaries.json").open() as dictionary:
-        dict_of_dicts = dictionary.read()
+    with open(dictionaries_dir, "r") as dictionary:
+        dict_of_dicts = json.load(dictionary)
+
 
     dicionario = dict_of_dicts["measurement_units"]
 

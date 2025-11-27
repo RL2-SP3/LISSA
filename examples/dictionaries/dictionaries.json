@@ -57,7 +57,8 @@
         "ESP motor Current - phase C":"A",
         "ESP discharge temperature sensor":"ºC",
         "ESP differential pressure":"Bar",
-        "ESP Vibration Module":"g"
+        "ESP Vibration Module":"g",
+        "ESP Current Module":"A"
     }
 
 }

@@ -2,6 +2,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 
+from matplotlib.axes import Axes
+
 import numpy as np
 
 from statsmodels.api import qqplot
@@ -18,39 +20,39 @@ import warnings
 
 class LissaFigure:
 
+    DEFAULT_RCPARAMS = {
+            "figure.figsize":      (20, 10),
+            "font.size":           10,
+            "figure.titlesize":    16,
+            "xtick.labelsize":     10,
+            "ytick.labelsize":     10,
+            "axes.labelsize":      10,
+            "figure.dpi":          600
+}
+
     DEFAULT_FIG_PARAMS = {
-            "fig_size"          :   (20,10),
-            "text_size"         :   10,
-            "title_size"        :   16,
-            "tick_size"         :   10,
-            "label_size"        :   10,
             "color_pallette"    :   "Oranges",
             "alpha"             :   0.3,
             "layout"            :   (2,5),
             "y_dist"            :   1,
             "tight_layout_pad"  :   1,
-            "dpi"               :   600,
             "color_scale"       :   "tab10",
             "log_scale_y"       :   False,
             "log_scale_x"       :   False
         }
     
-    DEFAULT_LABEL_PARAMS = {
+    DEFAULT_PLOT_PARAMS = {
             "x_label"           :   "X Label",
             "y_label"           :   "Y Label",
             "plot_title"        :   "Title of the Plot",
             "colorbar_title"    :   "Colorbar title",
-            "legend_title"      :   "Legend title"
+            "legend_title"      :   "Legend title",
+            "line_type"         :   "s",
+            "bins"              :   20,
+            "state_name"        :   "State"
             }
     
-    DEFAULT_QQ_PARAMS = {
-            "line_type"         :   "s"
-    }
-
-    DEFAULT_HIST_PARAMS = {
-            "bins"              :   20
-    }
-    
+        
     DEFAULT_SAVE_PARAMS = {
             "save_figure"       :    False,
             "dir"               :    "./",
@@ -64,12 +66,6 @@ class LissaFigure:
             "headers_path"          :   "./dictionaries/new_headers.json"
         }   
     
-    DEFAULT_FAILURE_PARAMS = {
-            "linewidth"             :   2,
-            "linestyle"             :   '--',
-            "linecolor"             :   "red",
-            "state_name"            :   "State"
-    }
 
     def __init__(
             self,
@@ -79,18 +75,17 @@ class LissaFigure:
         
         self.params = {
             **self.DEFAULT_FIG_PARAMS,
-            **self.DEFAULT_LABEL_PARAMS,
             **self.DEFAULT_SAVE_PARAMS,
             **self.DEFAULT_DICTS_PARAMS,
-            **self.DEFAULT_QQ_PARAMS,
-            **self.DEFAULT_HIST_PARAMS,
-            **self.DEFAULT_FAILURE_PARAMS,
             **kwargs
             }
         
+        plt.rcParams.update(self.DEFAULT_RCPARAMS)
+        
         if path is not None:
             dictionary = self._load_dict(path)
-            self.params.update(dictionary)
+            self.params.update(dictionary["li_params"])
+            plt.rcParams.update(dictionary["rc_params"])
                
         self.dict_of_dicts = self._load_dict(self.params["dict_path"])
 
@@ -148,8 +143,7 @@ class LissaFigure:
         
         self.figure, self.axs = plt.subplots(
             self.params["layout"][0],
-            self.params["layout"][1],
-            figsize=self.params["fig_size"])
+            self.params["layout"][1])
         
         return self
         
@@ -177,27 +171,18 @@ class LissaFigure:
             for j in range(m):
                 ax.text(j, i, f'{data.iloc[i, j]:.2f}', 
                         ha='center', 
-                        va='center', 
-                        color='black',
-                        fontsize=self.params["text_size"]
+                        va='center'
                         )
     
-        ax.set_yticks(
-            ticks=range(n),
-            labels=[self.numerical_properties_translated[prop] for prop in data.index],
-            fontsize=self.params["tick_size"])
+        ax.set_yticks(ticks=range(n),labels=[self.numerical_properties_translated[prop] for prop in data.index])
         
-        ax.set_xticks(
-            ticks=range(m),
-            labels=range(m),
-            fontsize=self.params["tick_size"])
+        ax.set_xticks(ticks=range(m),labels=range(m))
         
         self.figure.colorbar(ax.images[0], ax=ax, label=self.params["colorbar_title"])
 
-        self._set_axes_texts(ax,title=None)
-        self._finalize()
+        return self
         
-    def histogram(self,data):
+    def histogram(self,data, limits=None):
         for index, ax in enumerate(self.axs.ravel()):
 
             prop = self.numerical_properties[index]
@@ -206,23 +191,25 @@ class LissaFigure:
 
             data[prop].hist(
                 bins=self.params["bins"],
-                figsize=self.params["fig_size"],
-                layout=self.params["layout"],
                 ax=ax
                 )
             
-            self._set_axes_texts(
+            if limits is not None:
+                ax.set_xlim(limits)
+            
+            self.set_axes_texts(
                 ax,
                 title=translated_prop,
                 measure_X=self.measures[prop]
-                )
-        
-        self._finalize()
-         
+                ) 
+            
+        return self
 
     def quantile_quantile_plot(self,data,distribution=norm):       
         
-        for index,ax in enumerate(self.axs.ravel()):
+        view_of_axes = self.axs.ravel()
+
+        for index,ax in enumerate(view_of_axes):
             prop = self.numerical_properties[index]
             translated_prop = self.numerical_properties_translated[prop]
 
@@ -232,13 +219,14 @@ class LissaFigure:
                 ax=ax,
                 dist=distribution
                 )
-            self._set_axes_texts(ax,translated_prop)
+            self.set_axes_texts(ax,translated_prop)
     
         n = len(self.numerical_properties)    
         if (n > 1) and (n % 2):   
             self.axs[n-1].remove()
-        
-        self._finalize()
+
+        return self
+    
 
     def time_series_plot(self,data : pd.DataFrame,index=None):
         cmap = plt.get_cmap(self.params["color_scale"])
@@ -249,7 +237,8 @@ class LissaFigure:
         lines = data[self.numerical_properties].plot(
             ax=ax,
             logy=bool(self.params["log_scale_y"]),
-            fontsize=self.params["text_size"])
+            sharex=True
+            )
 
         translated = [
             self.numerical_properties_translated[c] 
@@ -260,33 +249,35 @@ class LissaFigure:
             handles = lines.lines,
             labels = translated,
             loc='upper left',
-            bbox_to_anchor=(1, 1),
-            fontsize = self.params["text_size"],
+            bbox_to_anchor=(1, 1)
             )
         
-        leg.set_title(self.params["legend_title"], prop={"size": self.params["text_size"]})
+        leg.set_title(self.params["legend_title"])
         
         
-        self._set_axes_texts(ax)
-        self._finalize()
+        self.set_axes_texts(ax)
+        self.finalize()
 
         self.time_flag = True
 
         return self
 
 
-    def failure_reference(self,time_entry,index=None):
+    def failure_reference(
+            self,
+            time_entry,
+            linestyle="--",
+            linewidth=2,
+            index=None):
         if not hasattr(self,"time_flag"):
             raise ReferenceError("No time-series plot!")
 
         if hasattr(self,"figure"):
             ax = self._select_ax_to_plot(index)
             ax.axvline(
-                time_entry, 
-                color       =   self.params["linecolor"],
-                linestyle   =   self.params["linestyle"],
-                linewidth   =   self.params["linewidth"]
-                )
+                time_entry,
+                linestyle = linestyle, 
+                linewidth=linewidth)
         else:
             raise ReferenceError("No figure set!")
         
@@ -335,19 +326,26 @@ class LissaFigure:
         return self
     
     
-    def _set_axes_texts(self,ax,title = None,measure_X=None,measure_Y=None):
+    def set_axes_texts(self,entry,title = None,measure_X=None,measure_Y=None):
+        if isinstance(entry,Axes):
+            ax = entry
+        else:
+            ax = self.axs.ravel()[entry]
         
         if title:
             ax.set_title(title)
                 
-        x_label =  self.params["x_label"] + ("[" + str(measure_X) + "]") * (measure_X is not None)
-        y_label =  self.params["y_label"] + ("[" + str(measure_Y) + "]") * (measure_Y is not None)
+        x_label =  self.params["x_label"] + (" [" + str(measure_X) + "]") * (measure_X is not None)
+        y_label =  self.params["y_label"] + (" [" + str(measure_Y) + "]") * (measure_Y is not None)
                 
-        ax.set_xlabel(x_label,fontsize=self.params["label_size"])
-        ax.set_ylabel(y_label,fontsize=self.params["label_size"])
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+
+        return self
 
 
-    def _finalize(self):
-        self.figure.suptitle(self.params["plot_title"],fontsize=self.params["title_size"],y=self.params["y_dist"])
+    def finalize(self):
+        self.figure.suptitle(self.params["plot_title"],y=self.params["y_dist"])
         self.figure.tight_layout(pad=self.params["tight_layout_pad"])
-        self.figure.set_dpi(self.params["dpi"])
+
+        return self

@@ -1,0 +1,35 @@
+{
+
+    "rc_params" : {
+            "figure.figsize"            :   [12, 20],
+            "font.size"                 :   13,
+            "figure.titlesize"          :   20,
+            "xtick.labelsize"           :   13,
+            "ytick.labelsize"           :   13,
+            "axes.labelsize"            :   13,
+            "figure.dpi"                :   600,
+            "legend.fontsize"           :   13,
+            "legend.title_fontsize"     :   13,
+            "axes.titlesize"            :   13
+
+        },
+        
+    "li_params" : {
+            "tight_layout_pad"  :   1.1,
+            "x_label"           :   "Quantil Teórico",
+            "y_label"           :   "Quantil Observado",
+            "plot_title"        :   "Gráfico Quantil-Quantil",
+            "legend_title"      :   "",
+            "save_figure"       :   0,
+            "dir"               :   "./imagens_gerais/",
+            "file_name"         :   "qq_plot.pt.jpg",
+            "layout"            :   [5,2],
+            "headers_path"      :   "./dictionaries/new_headers.json",     
+            "color_scale"       :   "tab20",
+            "log_scale_y"       :   0,
+            "bins"              :   50,
+            "line_type"         :   "45"
+
+        }
+
+}

@@ -70,6 +70,8 @@ def FigureComponents(
         titlesize   =   16,
         ticksize    =   10,
         labelsize    =   10,
+        cmap         =  "bwr",
+        textcolor       =   "white"
         ): #-> Tuple[fig, axs]
     
     '''
@@ -84,11 +86,11 @@ def FigureComponents(
 
     plt.figure(figsize=figsize)
 
-    plt.imshow(transposedComponents, interpolation='nearest',aspect='auto',cmap='bwr')
+    plt.imshow(transposedComponents, interpolation='nearest',aspect='auto',cmap=cmap)
 
     for i in range(transposedComponents.shape[0]):
         for j in range(transposedComponents.shape[1]):
-            plt.text(j, i, f'{transposedComponents[i, j]:.2f}', ha='center', va='center', color='black',fontsize=textsize)
+            plt.text(j, i, f'{transposedComponents[i, j]:.2f}', ha='center', va='center', color=textcolor,fontsize=textsize)
 
     
     plt.yticks(ticks=range(0,len(Headers)),labels=[Traducao(item,english) for item in Headers],fontsize=ticksize)

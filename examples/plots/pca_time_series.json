@@ -1,0 +1,32 @@
+{
+
+    "rc_params" : {
+            "figure.figsize"            :   [20, 10],
+            "font.size"                 :   10,
+            "figure.titlesize"          :   20,
+            "xtick.labelsize"           :   15,
+            "ytick.labelsize"           :   15,
+            "axes.labelsize"            :   15,
+            "figure.dpi"                :   600,
+            "legend.fontsize"           :   16,
+            "legend.title_fontsize"     :   16
+
+        },
+        
+    "li_params" : {
+            "tight_layout_pad"  :   1,
+            "x_label"           :   "Tempo",
+            "y_label"           :   "[-]",
+            "plot_title"        :   "Comparação da série original com a série transformada pela PCA - corrida B-18 2",
+            "legend_title"      :   "Variáveis",
+            "save_figure"       :   0,
+            "dir"               :   "./imagens_gerais/",
+            "file_name"         :   "PCA_b_28_2",
+            "layout"            :   [2,1],
+            "headers_path"      :   "./dictionaries/new_headers.json",     
+            "color_scale"       :   "tab20",
+            "log_scale_y"       :   0
+
+        }
+
+}

@@ -38,7 +38,8 @@ class LissaFigure:
             "tight_layout_pad"  :   1,
             "color_scale"       :   "tab10",
             "log_scale_y"       :   False,
-            "log_scale_x"       :   False
+            "log_scale_x"       :   False,
+            "colormap"          :   "bwr"
         }
     
     DEFAULT_PLOT_PARAMS = {
@@ -49,7 +50,8 @@ class LissaFigure:
             "legend_title"      :   "Legend title",
             "line_type"         :   "s",
             "bins"              :   20,
-            "state_name"        :   "State"
+            "state_name"        :   "State",
+            "text_color"        :   "black"
             }
     
         
@@ -163,7 +165,7 @@ class LissaFigure:
         
         ax = self._select_ax_to_plot(index)
         
-        ax.imshow(data, interpolation='nearest',aspect='auto',cmap='bwr')
+        ax.imshow(data, interpolation='nearest',aspect='auto',cmap=self.params["color_scale"])
 
         n,m = data.shape
 
@@ -171,7 +173,8 @@ class LissaFigure:
             for j in range(m):
                 ax.text(j, i, f'{data.iloc[i, j]:.2f}', 
                         ha='center', 
-                        va='center'
+                        va='center',
+                        color=self.params["text_color"]
                         )
     
         ax.set_yticks(ticks=range(n),labels=[self.numerical_properties_translated[prop] for prop in data.index])
@@ -228,41 +231,51 @@ class LissaFigure:
         return self
     
 
-    def time_series_plot(self,data : pd.DataFrame,index=None):
+    def time_series_plot(self,data : pd.DataFrame,index=None,columns=None):
         cmap = plt.get_cmap(self.params["color_scale"])
         plt.rcParams["axes.prop_cycle"] = plt.cycler(color=cmap(np.linspace(0,1,len(self.numerical_properties))))
 
         ax = self._select_ax_to_plot(index)
 
-        lines = data[self.numerical_properties].plot(
+        if columns == None:
+            columns = self.numerical_properties
+
+        self.lines = data[columns].plot(
             ax=ax,
             logy=bool(self.params["log_scale_y"]),
             sharex=True
             )
-
-        translated = [
-            self.numerical_properties_translated[c] 
-            for c in self.numerical_properties
-]
-
-        leg = ax.legend(
-            handles = lines.lines,
-            labels = translated,
-            loc='upper left',
-            bbox_to_anchor=(1, 1)
-            )
         
-        leg.set_title(self.params["legend_title"])
-        
-        
-        self.set_axes_texts(ax)
-        self.finalize()
 
         self.time_flag = True
 
         return self
+    
+    def set_legends(self,index=None,legend_title=None,columns=None):
+        ax = self._select_ax_to_plot(index)
 
+        if columns == None:
+            columns = [
+                self.numerical_properties_translated.get(c,c)
+                for c in self.numerical_properties 
+                ]
 
+        leg = ax.legend(
+            handles = self.lines.lines,
+            labels = columns,
+            loc='upper left',
+            bbox_to_anchor=(1, 1)
+            )
+        
+        if legend_title == None:
+            leg_title = self.params["legend_title"]
+        else:
+            leg_title = legend_title
+
+        leg.set_title(leg_title)
+
+        return self
+            
     def failure_reference(
             self,
             time_entry,
@@ -326,11 +339,15 @@ class LissaFigure:
         return self
     
     
-    def set_axes_texts(self,entry,title = None,measure_X=None,measure_Y=None):
-        if isinstance(entry,Axes):
-            ax = entry
+    def set_axes_texts(self,entry=None,title = None,measure_X=None,measure_Y=None):
+
+        if entry == None:
+            ax = self.axs
         else:
-            ax = self.axs.ravel()[entry]
+            if isinstance(entry,Axes):
+                ax = entry
+            else:
+                ax = self.axs.ravel()[entry]
         
         if title:
             ax.set_title(title)

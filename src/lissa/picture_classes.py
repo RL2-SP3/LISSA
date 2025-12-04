@@ -208,30 +208,46 @@ class LissaFigure:
             
         return self
 
-    def quantile_quantile_plot(self,data,distribution=norm):       
+    def quantile_quantile_plot(self,data,distribution=norm, columns = None):       
         
         view_of_axes = self.axs.ravel()
 
-        for index,ax in enumerate(view_of_axes):
-            prop = self.numerical_properties[index]
-            translated_prop = self.numerical_properties_translated[prop]
+        if columns == None:
+            columns = self.numerical_properties
+            translation = self.numerical_properties_translated
+        
 
+        for index,ax in enumerate(view_of_axes):
+            prop = columns[index]
+            
             qqplot(
                 data[prop], 
                 line=self.params["line_type"],
                 ax=ax,
                 dist=distribution
                 )
-            self.set_axes_texts(ax,translated_prop)
+            
+            if columns is None:
+                translated_prop = translation[prop]
+                self.set_axes_texts(ax,translated_prop)
+            else:
+                self.set_axes_texts(ax,prop)
     
-        n = len(self.numerical_properties)    
+        n = len(columns)    
         if (n > 1) and (n % 2):   
             self.axs[n-1].remove()
 
         return self
     
 
-    def time_series_plot(self,data : pd.DataFrame,index=None,columns=None):
+    def time_series_plot(
+            self,
+            data : pd.DataFrame | pd.Series ,
+            index=None,
+            columns=None,
+            line_color = None,
+
+            ):
         cmap = plt.get_cmap(self.params["color_scale"])
         plt.rcParams["axes.prop_cycle"] = plt.cycler(color=cmap(np.linspace(0,1,len(self.numerical_properties))))
 
@@ -240,12 +256,19 @@ class LissaFigure:
         if columns == None:
             columns = self.numerical_properties
 
-        self.lines = data[columns].plot(
-            ax=ax,
-            logy=bool(self.params["log_scale_y"]),
-            sharex=True
-            )
-        
+        plot_kwargs = {
+            "ax" : ax,
+            "logy" : bool(self.params["log_scale_y"]),
+            "sharex" : True
+        }
+
+        if line_color is not None:
+            plot_kwargs["color"] = line_color
+
+        if type(data) == pd.DataFrame:
+            self.lines = data[columns].plot(**plot_kwargs)        
+        else:
+            self.lines = data.plot(**plot_kwargs)        
 
         self.time_flag = True
 
@@ -361,8 +384,10 @@ class LissaFigure:
         return self
 
 
-    def finalize(self):
-        self.figure.suptitle(self.params["plot_title"],y=self.params["y_dist"])
+    def finalize(self,title=None):
+        if title == None:
+            title = self.params["plot_title"]
+        self.figure.suptitle(title,y=self.params["y_dist"])
         self.figure.tight_layout(pad=self.params["tight_layout_pad"])
 
         return self

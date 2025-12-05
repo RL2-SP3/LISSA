@@ -1,0 +1,31 @@
+{
+
+    "rc_params" : {
+            "figure.figsize"            :   [20, 7],
+            "font.size"                 :   13,
+            "figure.titlesize"          :   20,
+            "xtick.labelsize"           :   13,
+            "ytick.labelsize"           :   13,
+            "axes.labelsize"            :   13,
+            "figure.dpi"                :   300,
+            "legend.fontsize"           :   13,
+            "legend.title_fontsize"     :   13,
+            "axes.titlesize"            :   13
+
+        },
+        
+    "li_params" : {
+            "tight_layout_pad"  :   1,
+            "x_label"           :   "Tempo",
+            "y_label"           :   "[-]",
+            "plot_title"        :   "Identificação do GHMM - B-18 2",
+            "legend_title"      :   "Variáveis e identificações",
+            "save_figure"       :   0,
+            "dir"               :   "./imagens_gerais/",
+            "file_name"         :   "hmm_b18_2.jpg",
+            "layout"            :   [1,1],
+            "headers_path"      :   "./dictionaries/new_headers.json",
+            "state_name"        :   "State Radius"
+        }
+
+}

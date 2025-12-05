@@ -1,0 +1,30 @@
+{
+
+    "rc_params" : {
+            "figure.figsize"            :   [10, 5],
+            "font.size"                 :   13,
+            "figure.titlesize"          :   20,
+            "xtick.labelsize"           :   13,
+            "ytick.labelsize"           :   13,
+            "axes.labelsize"            :   13,
+            "figure.dpi"                :   600,
+            "legend.fontsize"           :   13,
+            "legend.title_fontsize"     :   13,
+            "axes.titlesize"            :   13
+
+        },
+        
+    "li_params" : {
+            "tight_layout_pad"  :   1,
+            "x_label"           :   "Valores",
+            "y_label"           :   "Densidade",
+            "plot_title"        :   "Histograma e Misturas Gaussianas",
+            "legend_title"      :   "Curvas",
+            "save_figure"       :   0,
+            "dir"               :   "./imagens_gerais/",
+            "file_name"         :   "histograma_gmm.pt.jpg",
+            "layout"            :   [1,1],
+            "headers_path"      :   "./dictionaries/new_headers.json"
+        }
+
+}

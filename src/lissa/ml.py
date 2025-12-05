@@ -87,15 +87,6 @@ def NewHeaderApplier(string: str, exportData: pd.DataFrame) -> list:
 
 
 
-def BoxCoxProccess(data: pd.DataFrame,columnName: str | list ) -> np.ndarray:
-    '''
-        Returns an array with the yeo-johnson transform of the specified column name. 
-
-        This continuous reshaping is needed due to the power_transform implementation.
-    '''
-    return power_transform(data[columnName].to_numpy().reshape(-1,1)).reshape(1,-1)[0]
-
-
 def StateConversion(distribution: np.ndarray ,n: int) -> dict:
     '''
         The HMM does the state classification randomly, this means that the state 0 not necessarily occurs most. 
@@ -105,19 +96,13 @@ def StateConversion(distribution: np.ndarray ,n: int) -> dict:
     stateOrder = np.insert(np.flip(stateOrder),0,0)
     return dict(zip(stateOrder,range(0,n+1)))
 
-def HMMTrainer(
-        X_train:        pd.DataFrame, 
-        trainLength:    np.ndarray, 
-        model:          hmm.BaseHMM
-        ):
-    
-    reshapedData = X_train.to_numpy()
-    if type(X_train) == pd.Series:
-        reshapedData = reshapedData.reshape(-1,1)
 
-    model.fit(reshapedData,trainLength)
 
-    return model
+def check_data(data):
+    if type(data) == pd.Series:
+        return data.to_numpy().reshape(-1,1)
+    else:
+        return data.to_numpy()
 
 
 
@@ -128,7 +113,6 @@ def PostProcessing(
         inputHeader:    str, 
         outputHeader:   str, 
         totalLength:    np.ndarray, 
-        verbose=True
         ):
     
     '''
@@ -136,11 +120,7 @@ def PostProcessing(
         Also, if verbose, print the AIC and BIC for comparision.
     '''
     
-    totalReshaped = modelData[inputHeader].to_numpy()
-
-    if type(modelData[inputHeader])==pd.Series:
-        totalReshaped = totalReshaped.reshape(-1,1)
-
+    totalReshaped = check_data(modelData[inputHeader])
     
     originalData.set_index(keys="Well Run",append=True,inplace=True)
     modelData.set_index(keys="Well Run",append=True,inplace=True)
@@ -154,107 +134,7 @@ def PostProcessing(
     originalData.reset_index(level="Well Run",inplace=True)
     modelData.reset_index(level="Well Run",inplace=True)
 
-    if verbose:
-        print("AIC: " + str(model.aic(totalReshaped))+ " BIC: " + str(model.bic(totalReshaped)))
-
     return originalData,modelData
     
-
-class GaussianMixtureModel:
-
-    DEFAULT_FIG_PARAMS = {
-            "fig_size"          :   (20,10),
-            "text_size"         :   10,
-            "title_size"        :   16,
-            "tick_size"         :   10,
-            "label_size"        :   10,
-            "tight_layout_pad"  :   1,
-            "dpi"               :   600
-        }
-    
-    DEFAULT_LABEL_PARAMS = {
-            "x_label"           :   "X Label",
-            "y_label"           :   "Y Label",
-            "plot_title"        :   "Title of the Plot",
-            "colorbar_title"    :   "Colorbar title",
-            "legend_title"      :   "Legend title"
-            }
-
-    DEFAULT_GAUSSIAN_MIXTURE_MODEL_PARAMS = {
-        "histogram_name" : "Histogram",
-        "gaussian_name"  : "Gaussian",
-        "figsize"        : (20,10),
-        "plot_title"     : "Histogram"
-    }
-
-    DEFAULT_SAVE_PARAMS = {
-            "save_figure"       :    False,
-            "dir"               :    "./",
-            "file_name"         :    "image"            
-        }
-    
-    DEFAULT_DICTS_PARAMS ={
-            "portuguese_dictionary" :   "translation_to_portuguese",
-            "units"                 :   "measurement_units",
-            "dict_path"             :   "./dictionaries/dictionaries.json",
-            "headers_path"          :   "./dictionaries/new_headers.json"
-        }
-
-    
-
-    def __init__(self,data,**kwargs):
-        
-        self.params = {
-            **self.DEFAULT_FIG_PARAMS,
-            **self.DEFAULT_LABEL_PARAMS,
-            **self.DEFAULT_SAVE_PARAMS,
-            **self.DEFAULT_DICTS_PARAMS,
-            **self.DEFAULT_GAUSSIAN_MIXTURE_MODEL_PARAMS,
-            **kwargs
-        }
-        
-        verbose = kwargs.pop("verbose", False)
-        self.gmm = GaussianMixture(**kwargs)
-
-        reshaped_data = data.to_numpy()
-        if type(data) == pd.Series:
-            reshaped_data = reshaped_data.reshape(-1,1)
-        
-        
-        self.gmm.fit(reshaped_data)
-
-        if verbose:
-            print("GMM AIC: " + str(self.gmm.aic(reshaped_data)))
-            print("GMM BIC: " + str(self.gmm.bic(reshaped_data)))
-        self.data = data
-    def __getattr__(self, name):
-        return getattr(self.gmm,name)
-
-    def plot_gmm(self,limits  =   (0,17)):
-               
-        self.stds = np.sqrt(self.gmm.covariances_).flatten()
-        self.weights = self.gmm.weights_
-        self.means = self.gmm.means_
-
-        # Criando um range de valores para plotar as distribuições
-        x = np.linspace(limits[0], np.max(self.data), 1000)
-
-
-        # Plotando histograma dos dados originais
-        self.figure = plt.figure(figsize=self.params["fig_size"])
-        self.ax = self.figure.add_subplot(1,1,1)
-        
-        self.ax.hist(self.data, bins=100, density=True, alpha=0.5, label=self.params["histogram_name"])
-        self.ax.set_xlim(limits[0],limits[1])
-
-        # Plotando cada gaussiana individualmente
-        for i in range(self.gmm.means_.shape[0]):
-            self.ax.plot(x, self.weights[i] * norm.pdf(x, self.means[i], self.stds[i]), label=self.params["gaussian_name"] + f"{i+1}")
-
-        self.figure.legend()
-        self.figure.suptitle(self.params["plot_title"],fontsize=self.params["title_size"])
-        self.ax.set_xlabel(self.params["x_label"])
-        self.ax.set_ylabel(self.params["y_label"])
-        self.figure.show()
 
 

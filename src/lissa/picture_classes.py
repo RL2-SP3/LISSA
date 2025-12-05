@@ -16,6 +16,7 @@ import json
 import warnings
 
 
+from sklearn.mixture import GaussianMixture
 
 
 class LissaFigure:
@@ -99,6 +100,8 @@ class LissaFigure:
         self.numerical_properties_translated = self.numerical_properties.copy()
         self.non_numerical_properties_translated = self.non_numerical_properties.copy()
 
+        self.lines = []
+
 
     def _load_dict(self,path):
         with (Path(path)).open() as f:
@@ -148,6 +151,32 @@ class LissaFigure:
             self.params["layout"][1])
         
         return self
+    
+    def set_legends(self,index=None,legend_title=None,columns=None):
+        ax = self._select_ax_to_plot(index)
+
+        if columns == None:
+            columns = [
+                self.numerical_properties_translated.get(c,c)
+                for c in self.numerical_properties 
+                ]
+
+        leg = ax.legend(
+            handles = self.lines,
+            labels = columns,
+            loc='upper left',
+            bbox_to_anchor=(1, 1)
+            )
+        
+        if legend_title == None:
+            leg_title = self.params["legend_title"]
+        else:
+            leg_title = legend_title
+
+        leg.set_title(leg_title)
+
+        return self
+    
         
 
     def _select_ax_to_plot(self,index=None):
@@ -208,7 +237,11 @@ class LissaFigure:
             
         return self
 
-    def quantile_quantile_plot(self,data,distribution=norm, columns = None):       
+    def quantile_quantile_plot(
+            self,
+            data,distribution=norm, 
+            columns = None
+            ):       
         
         view_of_axes = self.axs.ravel()
 
@@ -266,38 +299,15 @@ class LissaFigure:
             plot_kwargs["color"] = line_color
 
         if type(data) == pd.DataFrame:
-            self.lines = data[columns].plot(**plot_kwargs)        
+            data[columns].plot(**plot_kwargs)        
         else:
-            self.lines = data.plot(**plot_kwargs)        
+            data.plot(**plot_kwargs)        
 
         self.time_flag = True
+        self.lines = list(ax.get_lines())
 
         return self
     
-    def set_legends(self,index=None,legend_title=None,columns=None):
-        ax = self._select_ax_to_plot(index)
-
-        if columns == None:
-            columns = [
-                self.numerical_properties_translated.get(c,c)
-                for c in self.numerical_properties 
-                ]
-
-        leg = ax.legend(
-            handles = self.lines.lines,
-            labels = columns,
-            loc='upper left',
-            bbox_to_anchor=(1, 1)
-            )
-        
-        if legend_title == None:
-            leg_title = self.params["legend_title"]
-        else:
-            leg_title = legend_title
-
-        leg.set_title(leg_title)
-
-        return self
             
     def failure_reference(
             self,
@@ -356,8 +366,37 @@ class LissaFigure:
                 label=self.params["state_name"] + f" {state}"
             )
 
-            # h, l = ax.get_legend_handles_labels()
-            # ax.legend(h,[Traducao(item, english) for item in l], loc='upper left',bbox_to_anchor=(1, 1),fontsize=gnrlFont)
+            self.lines = list(ax.get_lines())
+
+        return self
+    
+    def plot_gmm_histogram(
+            self,
+            model_gmm : GaussianMixture,
+            data,
+            limits = (0,17),
+            index=None
+            ):
+        
+        stds = np.sqrt(model_gmm.covariances_).flatten()
+        weights = model_gmm.weights_
+        means = model_gmm.means_
+
+        # Criando um range de valores para plotar as distribuições
+        x = np.linspace(limits[0], limits[1], 1000)
+
+        ax = self._select_ax_to_plot(index)
+        
+        n,bins,patches = ax.hist(data, bins=100, density=True, alpha=0.5)
+        ax.set_xlim(limits[0],limits[1])
+
+
+        # Plotando cada gaussiana individualmente
+        for i in range(means.shape[0]):
+            ax.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]))
+
+        self.lines = list(ax.lines).extend(list(ax.patches)),
+                
 
         return self
     

@@ -16,7 +16,7 @@
         
     "li_params" : {
             "save_figure"       :   0,
-            "dir"               :   "./imagens_gerais/",
+            "dir"               :   "../imagens_gerais/",
             "file_name"         :   "full_pca_pt.jpg",
             "layout"            :   [1,1],
             "headers_path"      :   "./dictionaries/new_headers.json",

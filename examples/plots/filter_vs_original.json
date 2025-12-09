@@ -20,7 +20,7 @@
             "plot_title"        :   "Pressão de Entrada na corrida B-18 2",
             "legend_title"      :   "",
             "save_figure"       :   0,
-            "dir"               :   "./imagens_gerais/",
+            "dir"               :   "../imagens_gerais/",
             "file_name"         :   "pressao_b18_2_pt.jpg",
             "layout"            :   [2,1],
             "headers_path"      :   "./dictionaries/new_headers.json",     

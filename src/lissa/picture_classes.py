@@ -28,7 +28,7 @@ class LissaFigure:
             "xtick.labelsize":     10,
             "ytick.labelsize":     10,
             "axes.labelsize":      10,
-            "figure.dpi":          600
+            "figure.dpi":          600 
 }
 
     DEFAULT_FIG_PARAMS = {
@@ -52,7 +52,8 @@ class LissaFigure:
             "line_type"         :   "s",
             "bins"              :   20,
             "state_name"        :   "State",
-            "text_color"        :   "black"
+            "text_color"        :   "black",
+            "failure_line_color":   "red"
             }
     
         
@@ -80,6 +81,7 @@ class LissaFigure:
             **self.DEFAULT_FIG_PARAMS,
             **self.DEFAULT_SAVE_PARAMS,
             **self.DEFAULT_DICTS_PARAMS,
+            **self.DEFAULT_PLOT_PARAMS,
             **kwargs
             }
         
@@ -100,7 +102,6 @@ class LissaFigure:
         self.numerical_properties_translated = self.numerical_properties.copy()
         self.non_numerical_properties_translated = self.non_numerical_properties.copy()
 
-        self.lines = []
 
 
     def _load_dict(self,path):
@@ -134,9 +135,12 @@ class LissaFigure:
         
         return self
             
-    def save_fig(self):
-        if bool(self.params["save_figure"]) and hasattr(self,"figure"):
-            self.figure.savefig(Path(self.params["dir"]) / self.params["file_name"], bbox_inches='tight')
+    def save_fig(self,path=None):
+        if hasattr(self,"figure"):
+            if path == None:
+                self.figure.savefig(self.params["dir"]+ self.params["file_name"], bbox_inches='tight')
+            else:
+                self.figure.savefig(path, bbox_inches='tight')
         else:
             warnings.warn("This figure was not saved!")
 
@@ -154,15 +158,17 @@ class LissaFigure:
     
     def set_legends(self,index=None,legend_title=None,columns=None):
         ax = self._select_ax_to_plot(index)
+        
+        h, l = ax.get_legend_handles_labels()
 
         if columns == None:
             columns = [
                 self.numerical_properties_translated.get(c,c)
-                for c in self.numerical_properties 
+                for c in l 
                 ]
 
         leg = ax.legend(
-            handles = self.lines,
+            handles = h,
             labels = columns,
             loc='upper left',
             bbox_to_anchor=(1, 1)
@@ -239,19 +245,21 @@ class LissaFigure:
 
     def quantile_quantile_plot(
             self,
-            data,distribution=norm, 
+            data,
+            distribution=norm, 
             columns = None
             ):       
         
         view_of_axes = self.axs.ravel()
 
         if columns == None:
-            columns = self.numerical_properties
+            columns_to_plot = self.numerical_properties
             translation = self.numerical_properties_translated
-        
+        else:
+            columns_to_plot = columns
 
         for index,ax in enumerate(view_of_axes):
-            prop = columns[index]
+            prop = columns_to_plot[index]
             
             qqplot(
                 data[prop], 
@@ -262,11 +270,11 @@ class LissaFigure:
             
             if columns is None:
                 translated_prop = translation[prop]
-                self.set_axes_texts(ax,translated_prop)
+                self.set_axes_texts(entry=ax,title=translated_prop)
             else:
-                self.set_axes_texts(ax,prop)
+                self.set_axes_texts(entry=ax,title=prop)
     
-        n = len(columns)    
+        n = len(columns_to_plot)    
         if (n > 1) and (n % 2):   
             self.axs[n-1].remove()
 
@@ -279,6 +287,7 @@ class LissaFigure:
             index=None,
             columns=None,
             line_color = None,
+            line_width = 0.7
 
             ):
         cmap = plt.get_cmap(self.params["color_scale"])
@@ -292,7 +301,8 @@ class LissaFigure:
         plot_kwargs = {
             "ax" : ax,
             "logy" : bool(self.params["log_scale_y"]),
-            "sharex" : True
+            "sharex" : True,
+            "linewidth":line_width
         }
 
         if line_color is not None:
@@ -304,7 +314,7 @@ class LissaFigure:
             data.plot(**plot_kwargs)        
 
         self.time_flag = True
-        self.lines = list(ax.get_lines())
+        
 
         return self
     
@@ -323,7 +333,8 @@ class LissaFigure:
             ax.axvline(
                 time_entry,
                 linestyle = linestyle, 
-                linewidth=linewidth)
+                linewidth=linewidth,
+                color=self.params["failure_line_color"])
         else:
             raise ReferenceError("No figure set!")
         
@@ -366,8 +377,6 @@ class LissaFigure:
                 label=self.params["state_name"] + f" {state}"
             )
 
-            self.lines = list(ax.get_lines())
-
         return self
     
     def plot_gmm_histogram(
@@ -387,15 +396,13 @@ class LissaFigure:
 
         ax = self._select_ax_to_plot(index)
         
-        n,bins,patches = ax.hist(data, bins=100, density=True, alpha=0.5)
+        n,bins,patches = ax.hist(data, bins=100, density=True, alpha=0.5,label="Histogram")
         ax.set_xlim(limits[0],limits[1])
 
 
         # Plotando cada gaussiana individualmente
         for i in range(means.shape[0]):
-            ax.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]))
-
-        self.lines = list(ax.lines).extend(list(ax.patches)),
+            ax.plot(x, weights[i] * norm.pdf(x, means[i], stds[i]),label=f"Gaussian {i}")
                 
 
         return self

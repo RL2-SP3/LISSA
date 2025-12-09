@@ -15,8 +15,8 @@
         
     "li_params" : {
             "save_figure"       :   0,
-            "dir"               :   "./imagens_gerais/",
-            "file_name"         :   "full_pca_pt.jpg",
+            "dir"               :   "../imagens_gerais/",
+            "file_name"         :   "full_ica_pt.jpg",
             "layout"            :   [1,1],
             "headers_path"      :   "./dictionaries/new_headers.json",
             "x_label"           :   "Componentes da ICA",
@@ -24,7 +24,7 @@
             "plot_title"        :   "ICA - Matriz de pesos",
             "colorbar_title"    :   "Valor do peso",
             "text_color"        :   "black",
-            "color_scale"       :   "bwr"
+            "color_scale"       :   "coolwarm"
         }
 
 }

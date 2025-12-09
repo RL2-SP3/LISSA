@@ -7,7 +7,7 @@
             "xtick.labelsize"           :   15,
             "ytick.labelsize"           :   15,
             "axes.labelsize"            :   15,
-            "figure.dpi"                :   600,
+            "figure.dpi"                :   300,
             "legend.fontsize"           :   16,
             "legend.title_fontsize"     :   16,
             "axes.titlesize"            :   16
@@ -21,7 +21,7 @@
             "plot_title"        :   "Comparação entre métodos - Pressão de entrada B-18 2",
             "legend_title"      :   "Cômputos",
             "save_figure"       :   0,
-            "dir"               :   "./imagens_gerais/",
+            "dir"               :   "../imagens_gerais/",
             "file_name"         :   "meanvsmedian_pt.jpg",
             "layout"            :   [1,1],
             "headers_path"      :   "./dictionaries/new_headers.json",     

@@ -6,7 +6,7 @@
             "xtick.labelsize"           :   13,
             "ytick.labelsize"           :   13,
             "axes.labelsize"            :   13,
-            "figure.dpi"                :   600,
+            "figure.dpi"                :   400,
             "legend.fontsize"           :   13,
             "legend.title_fontsize"     :   13,
             "axes.titlesize"            :   13
@@ -20,7 +20,7 @@
             "plot_title"        :   "Pressão na Entrada da ESP - Corrida B-18 2",
             "legend_title"      :   "",
             "save_figure"       :   0,
-            "dir"               :   "./imagens_gerais/",
+            "dir"               :   "../imagens_gerais/",
             "file_name"         :   "z_score_formation_pt.jpg",
             "layout"            :   [2,2],
             "headers_path"      :   "./dictionaries/new_headers.json",     

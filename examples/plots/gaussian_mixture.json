@@ -21,7 +21,7 @@
             "plot_title"        :   "Histograma e Misturas Gaussianas",
             "legend_title"      :   "Curvas",
             "save_figure"       :   0,
-            "dir"               :   "./imagens_gerais/",
+            "dir"               :   "../imagens_gerais/",
             "file_name"         :   "histograma_gmm.pt.jpg",
             "layout"            :   [1,1],
             "headers_path"      :   "./dictionaries/new_headers.json"

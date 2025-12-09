@@ -20,7 +20,7 @@
             "plot_title"        :   "Comparação da série original com a série transformada pela PCA - corrida B-18 2",
             "legend_title"      :   "Variáveis",
             "save_figure"       :   0,
-            "dir"               :   "./imagens_gerais/",
+            "dir"               :   "../imagens_gerais/",
             "file_name"         :   "PCA_b_28_2",
             "layout"            :   [2,1],
             "headers_path"      :   "./dictionaries/new_headers.json",     

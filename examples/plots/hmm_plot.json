@@ -1,7 +1,7 @@
 {
 
     "rc_params" : {
-            "figure.figsize"            :   [20, 7],
+            "figure.figsize"            :   [20, 10],
             "font.size"                 :   13,
             "figure.titlesize"          :   20,
             "xtick.labelsize"           :   13,
@@ -18,12 +18,12 @@
             "tight_layout_pad"  :   1,
             "x_label"           :   "Tempo",
             "y_label"           :   "[-]",
-            "plot_title"        :   "Identificação do GHMM - A-29 2",
+            "plot_title"        :   "Identificação do GHMM - B-18 2",
             "legend_title"      :   "Variáveis e identificações",
             "save_figure"       :   0,
             "dir"               :   "../imagens_gerais/",
-            "file_name"         :   "hmm_A-29 2.jpg",
-            "layout"            :   [1,1],
+            "file_name"         :   "hmm_B-18 2.jpg",
+            "layout"            :   [2,1],
             "headers_path"      :   "./dictionaries/new_headers.json",
             "state_name"        :   "Estado"
         }

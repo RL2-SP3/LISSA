@@ -1,15 +1,15 @@
 {
     "rc_params" : {
-            "figure.figsize"            :   [20, 10],
-            "font.size"                 :   13,
+            "figure.figsize"            :   [16, 10],
+            "font.size"                 :   15,
             "figure.titlesize"          :   20,
-            "xtick.labelsize"           :   13,
-            "ytick.labelsize"           :   13,
-            "axes.labelsize"            :   13,
+            "xtick.labelsize"           :   15,
+            "ytick.labelsize"           :   15,
+            "axes.labelsize"            :   15,
             "figure.dpi"                :   400,
-            "legend.fontsize"           :   13,
-            "legend.title_fontsize"     :   13,
-            "axes.titlesize"            :   13
+            "legend.fontsize"           :   15,
+            "legend.title_fontsize"     :   15,
+            "axes.titlesize"            :   15
 
         },
         

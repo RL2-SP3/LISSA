@@ -2,7 +2,7 @@
 
     "rc_params" : {
             "figure.figsize"            :   [20, 10],
-            "font.size"                 :   15,
+            "font.size"                 :   20,
             "figure.titlesize"          :   20,
             "xtick.labelsize"           :   15,
             "ytick.labelsize"           :   15,
@@ -10,7 +10,7 @@
             "figure.dpi"                :   250,
             "legend.fontsize"           :   16,
             "legend.title_fontsize"     :   16,
-            "axes.titlesize"            :   16
+            "axes.titlesize"            :   20
 
         },
         

@@ -23,7 +23,7 @@
             "save_figure"       :   0,
             "dir"               :   "../imagens_gerais/",
             "file_name"         :   "hmm_B-18 2.jpg",
-            "layout"            :   [1,1],
+            "layout"            :   [2,1],
             "headers_path"      :   "./dictionaries/new_headers.json",
             "state_name"        :   "Estado"
         }

@@ -287,7 +287,7 @@ class LissaFigure:
             index=None,
             columns=None,
             line_color = None,
-            line_width = 0.7
+            line_width = 1
 
             ):
         cmap = plt.get_cmap(self.params["color_scale"])

@@ -56,7 +56,7 @@ In data analysis and signal processing projects, it is common that:
 │       ├── processing.py
 ```
 
-src/lissa/
+```src/lissa/```
 
 Core library of the project.
 Contains all reusable code: including:
@@ -94,32 +94,14 @@ Subfolders:
 
 ```dynamax/:``` experiments using the dynamax library
 
-# ├── docs/
+```├── docs/```
 
 
-```docs/```
 Auto-generated documentation (HTML). typically produced by tools such as Sphinx or pdoc.
 Includes API documentation for the lissa modules.
 
-# ├── dist/
 
-
-Distribution artifacts generated during packaging:
-
-- .whl (wheel)
-
-- .tar.gz (source distribution)
-
-- Used for installation via pip.
-
-# ├── data/
-
-
-Raw and intermediate datasets used in analyses.
-Not part of the library API.
-
-
-# ├── pyproject.toml
+```├── pyproject.toml```
 
 
 Project configuration file defining:
@@ -130,20 +112,10 @@ Project configuration file defining:
 
 - package metadata
 
-# ├── README.md
-
+```├── README.md```
 
 Main project documentation.
 
-# ├── remount.sh, ssh.sh
-
-
-Utility shell scripts for environment or remote access setup.
-
-# ├── lissa.egg-info/
-
-
-Metadata generated automatically during package installation or build.
 
 ---
 ## Core Concept: JSON-Driven Configuration

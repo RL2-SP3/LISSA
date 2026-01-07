@@ -45,17 +45,104 @@ In data analysis and signal processing projects, it is common that:
 ## Project Structure
 
 ```text
-lissafigure/
-├── lissa_figure.py          # Main LISSA class
-├── defaults.py              # Default parameter dictionaries
-├── utils.py                 # Utility functions
-├── dictionaries/
-│   ├── dictionaries.json    # Translations and units
-│   └── new_headers.json
-├── plots/
-│   └── example_plot.json    # Plot configuration
-└── README.md
+.
+├── src/
+│   ├── lissa/
+│       ├── __init__.py
+│       ├── ml.py
+│       ├── pca.py
+│       ├── picture.py
+│       ├── picture_classes.py
+│       ├── processing.py
 ```
+
+# src/lissa/
+Core library of the project.
+Contains all reusable code: including:
+
+- signal processing utilities
+
+- PCA and statistical analysis
+
+- machine learning helpers
+
+- plotting and figure abstraction (LissaFigure)
+
+#├── examples/
+
+
+```examples/```
+Notebooks and scripts demonstrating how to use the library.
+Includes:
+
+- PCA analysis
+
+- HMM and GMM experiments
+
+- filtering and scaling examples
+
+- deprecated exploratory notebooks kept for reference
+
+Subfolders:
+
+```method_examples/:``` focused examples of individual methods
+
+```plots/:``` JSON configuration files used by LissaFigure
+
+```dictionaries/:``` translation dictionaries and metadata
+
+```dynamax/:``` experiments using the dynamax library
+
+# ├── docs/
+
+
+```docs/```
+Auto-generated documentation (HTML). typically produced by tools such as Sphinx or pdoc.
+Includes API documentation for the lissa modules.
+
+# ├── dist/
+
+
+Distribution artifacts generated during packaging:
+
+- .whl (wheel)
+
+- .tar.gz (source distribution)
+
+- Used for installation via pip.
+
+# ├── data/
+
+
+Raw and intermediate datasets used in analyses.
+Not part of the library API.
+
+
+# ├── pyproject.toml
+
+
+Project configuration file defining:
+
+- dependencies
+
+- build system
+
+- package metadata
+
+# ├── README.md
+
+
+Main project documentation.
+
+# ├── remount.sh, ssh.sh
+
+
+Utility shell scripts for environment or remote access setup.
+
+# ├── lissa.egg-info/
+
+
+Metadata generated automatically during package installation or build.
 
 ---
 ## Core Concept: JSON-Driven Configuration

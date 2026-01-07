@@ -1,0 +1,110 @@
+.
+├── choke_per_watercut
+├── data
+│   ├── bombas_ind
+│   ├── Notebooks.zip
+│   └── PCA
+├── dist
+│   ├── lissa-2025.1.31-py3-none-any.whl
+│   └── lissa-2025.1.31.tar.gz
+├── docs
+│   ├── index.html
+│   ├── lissa
+│   │   ├── ml.html
+│   │   ├── pca.html
+│   │   ├── picture.html
+│   │   └── processing.html
+│   ├── lissa.html
+│   └── search.js
+├── examples
+│   ├── aicbic_analysis
+│   ├── analise_bic_aic.ipynb
+│   ├── analise_dados_PCA.ipynb
+│   ├── analise_modelos_hmm_direta.ipynb
+│   ├── deprecated
+│   │   ├── analise_dados_PCA_separador.ipynb
+│   │   ├── analise_modelos_hmm_direta_n_features.ipynb
+│   │   ├── analise_modelos_hmm.ipynb
+│   │   ├── analise_simples.ipynb
+│   │   ├── frequency.ipynb
+│   │   ├── gamma_test.ipynb
+│   │   ├── medianTest.ipynb
+│   │   ├── prototipo.py
+│   │   ├── teste_boxcox.ipynb
+│   │   ├── teste_gmm.ipynb
+│   │   └── teste_otherthing.ipynb
+│   ├── dictionaries
+│   │   ├── base_data_headers.json
+│   │   ├── dictionaries.json
+│   │   ├── headers.json
+│   │   └── new_headers.json
+│   ├── dynamax
+│   │   ├── analise_modelos_hmm_direta_l2norm _dynamax.ipynb
+│   │   ├── analise_modelos_hmm_direta_n_features _dynamax.ipynb
+│   │   └── dynamax_arhmm_example.ipynb
+│   ├── generalHMM_example.ipynb
+│   ├── general_text_images.ipynb
+│   ├── medianTest_direto.ipynb
+│   ├── method_examples
+│   │   ├── exemploapp.ipynb
+│   │   ├── exemplos.ipynb
+│   │   ├── experiment.ipynb
+│   │   ├── filters.ipynb
+│   │   ├── imagens_exemplos
+│   │   └── scale.ipynb
+│   ├── plots
+│   │   ├── comparison_plot.json
+│   │   ├── filter_vs_original.json
+│   │   ├── gaussian_mixture.json
+│   │   ├── histograms.json
+│   │   ├── histograms_Z_std.json
+│   │   ├── hmm_gmm.json
+│   │   ├── hmm_plot.json
+│   │   ├── ica.json
+│   │   ├── ica_time_series.json
+│   │   ├── mad_vs_std.json
+│   │   ├── mean_vs_median.json
+│   │   ├── original_properties.json
+│   │   ├── original_properties_log.json
+│   │   ├── pca_cov.json
+│   │   ├── pca.json
+│   │   ├── pca_log.json
+│   │   ├── pca_time_series.json
+│   │   ├── qq_plot.json
+│   │   ├── time_series_plot.json
+│   │   └── Z_score_general_plot.json
+│   ├── pump_data_cleaning.ipynb
+│   └── tables
+│       └── medians
+├── frequencia
+├── imagensFinaisHMM
+├── imagens_gerais
+│   └── pumps
+├── imagensHMM
+├── imagensHMM_map
+├── lissa.egg-info
+│   ├── dependency_links.txt
+│   ├── PKG-INFO
+│   ├── SOURCES.txt
+│   └── top_level.txt
+├── pyproject.toml
+├── README.md
+├── remount.sh
+├── src
+│   ├── lissa
+│   │   ├── __init__.py
+│   │   ├── ml.py
+│   │   ├── pca.py
+│   │   ├── picture_classes.py
+│   │   ├── picture.py
+│   │   └── processing.py
+│   └── lissa.egg-info
+│       ├── dependency_links.txt
+│       ├── PKG-INFO
+│       ├── requires.txt
+│       ├── SOURCES.txt
+│       └── top_level.txt
+├── ssh.sh
+└── strucutre.txt
+
+27 directories, 81 files

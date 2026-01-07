@@ -4,6 +4,8 @@
 
 Its main goal is to **separate visualization logic from analysis code**, allowing plots to be configured, reused, and audited without modifying plotting scripts.
 
+A secondary goal is to provide examples of how to apply PCA methods, HMM methods and doing a general data analysis of the Equinor provided data of the main project.
+
 ---
 
 ## Motivation
@@ -110,7 +112,7 @@ All major methods return self, enabling chained calls:
 ---
 
 
-##Main Methods
+## Main Methods
 ```set_figure()```
 
 - Creates the figure and axes

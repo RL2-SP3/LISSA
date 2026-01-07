@@ -56,7 +56,8 @@ In data analysis and signal processing projects, it is common that:
 │       ├── processing.py
 ```
 
-# src/lissa/
+src/lissa/
+
 Core library of the project.
 Contains all reusable code: including:
 

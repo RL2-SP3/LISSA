@@ -17,7 +17,7 @@
             "tight_layout_pad"  :   1,
             "x_label"           :   "Tempo",
             "y_label"           :   "[-]",
-            "plot_title"        :   "Propriedades da corrida B-18 2",
+            "plot_title"        :   "Z-score modificado - corrida B-18 2",
             "legend_title"      :   "Variáveis",
             "save_figure"       :   0,
             "dir"               :   "../imagens_gerais/",

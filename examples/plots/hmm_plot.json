@@ -1,7 +1,7 @@
 {
 
     "rc_params" : {
-            "figure.figsize"            :   [20, 10],
+            "figure.figsize"            :   [20, 7],
             "font.size"                 :   13,
             "figure.titlesize"          :   20,
             "xtick.labelsize"           :   13,

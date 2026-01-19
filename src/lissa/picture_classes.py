@@ -105,7 +105,7 @@ class LissaFigure:
 
 
     def _load_dict(self,path):
-        with (Path(path)).open() as f:
+        with (Path(path)).open(encoding="utf-8") as f:
             return json.load(f)
     
     def __repr__(self):
